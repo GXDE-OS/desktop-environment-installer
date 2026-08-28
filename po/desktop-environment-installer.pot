@@ -1,20 +1,45 @@
-# Translation file of GXDE Desktop Environment Installer
-# Copyright (C) 2026 CharOfString
-# This file is licensed under GPLv3 or any later version.
-# FIRST CharOfString <root@CharOfString.cc>, 2026.
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the gxde-desktop-environment-installer package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-28 23:14+0800\n"
+"POT-Creation-Date: 2026-08-29 00:01+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: \n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+msgid "Invalid input. Please try again."
+msgstr ""
+
 msgid "GXDE Desktop Environment Installer"
+msgstr ""
+
+msgid "Please ensure that you have NOT installed Deepin DDE..."
+msgstr ""
+
+msgid ""
+"For GXDE relys on old version of DDE components, which may be conflict with "
+"Deepin DDE."
+msgstr ""
+
+msgid ""
+"If you have installed UKUI Wayland session then you may only use GXDE X11 "
+"session..."
+msgstr ""
+
+msgid ""
+"For GXDE's Wayland compositor is based on Kylin's Wayland compositor, which "
+"may be conflict with UKUI Wayland compositor."
+msgstr ""
+
+msgid "Still proceed with the installation?"
 msgstr ""

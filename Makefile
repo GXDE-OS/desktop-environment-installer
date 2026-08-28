@@ -33,6 +33,7 @@ update-translations:
 		--language=Python \
 		--from-code=UTF-8 \
 		--keyword=_ \
+		--keyword=tr \
 		--no-location \
 		--package-name=$(PACKAGE) \
 		--package-version=$(VERSION) \

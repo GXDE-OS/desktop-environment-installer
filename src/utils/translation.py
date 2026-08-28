@@ -16,35 +16,34 @@
 # GXDE Desktop Environment Installer.If not,
 # see <https://www.gnu.org/licenses/>.
 
+import gettext
 import sys
 
 from pathlib import Path
-from utils.get_input import get_yes_no_input
-from utils.translation import tr
 
 DOMAIN = "desktop-environment-installer"
 DEFAULT_LANGUAGE = "en_US"
 BUNDLE_ROOT = Path(
-  getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent)
+  getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent.parent)
 )
 LOCALE_DIR = BUNDLE_ROOT / "locale"
-INSTALLER_VERSION = "0.1.0"
 
-def main() -> None:
-  print(tr("GXDE Desktop Environment Installer"))
-  print(f"RELEASE v{INSTALLER_VERSION}")
-  print("=========================================================")
-  print(tr("Please ensure that you have NOT installed Deepin DDE..."))
-  print(tr("For GXDE relys on old version of DDE components, "
-    "which may be conflict with Deepin DDE."))
-  print(tr("If you have installed UKUI Wayland session then you may only use "
-    "GXDE X11 session..."))
-  print(tr("For GXDE's Wayland compositor is based on Kylin's Wayland "
-    "compositor, which may be conflict with UKUI Wayland compositor."))
+def get_translator(language: str | None = None) -> gettext.NullTranslations:
+  languages = [language] if language else None
+  try:
+    return gettext.translation(
+      DOMAIN,
+      localedir=LOCALE_DIR,
+      languages=languages,
+    )
+  except FileNotFoundError:
+    return gettext.translation(
+      DOMAIN,
+      localedir=LOCALE_DIR,
+      languages=[DEFAULT_LANGUAGE],
+      fallback=True,
+    )
 
-  proceed = get_yes_no_input(tr("Still proceed with the installation?"))
-  if not proceed:
-    sys.exit(0)
+tr = get_translator().gettext
 
-if __name__ == "__main__":
-  main()
+__all__ = ["get_translator", "tr"]

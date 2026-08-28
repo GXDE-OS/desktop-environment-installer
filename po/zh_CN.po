@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-28 00:00+0800\n"
+"POT-Creation-Date: 2026-08-29 00:00+0800\n"
 "PO-Revision-Date: 2026-08-28 00:00+0800\n"
 "Last-Translator: GXDE Team\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -12,5 +12,29 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
+msgid "Invalid input. Please try again."
+msgstr "输入无效，请重试..."
+
 msgid "GXDE Desktop Environment Installer"
 msgstr "GXDE桌面环境安装器"
+
+msgid "Please ensure that you have NOT installed Deepin DDE..."
+msgstr "请确保您的系统上未安装深度DDE桌面环境..."
+
+msgid ""
+"For GXDE relys on old version of DDE components, which may be conflict with "
+"Deepin DDE."
+msgstr "原因是GXDE依赖某些旧版DDE组件，所以GXDE会与DDE冲突。"
+
+msgid ""
+"If you have installed UKUI Wayland session then you may only use GXDE X11 "
+"session..."
+msgstr "如果您装了麒麟的UKUI桌面，请您仅安装X11会话..."
+
+msgid ""
+"For GXDE's Wayland compositor is based on Kylin's Wayland compositor, which "
+"may be conflict with UKUI Wayland compositor."
+msgstr "原因是GXDE的Wayland合成器修改自麒麟的合成器，我们不想造成任何冲突..."
+
+msgid "Still proceed with the installation?"
+msgstr "还要继续安装吗？"
