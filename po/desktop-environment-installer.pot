@@ -1,0 +1,20 @@
+# Translation file of GXDE Desktop Environment Installer
+# Copyright (C) 2026 CharOfString
+# This file is licensed under GPLv3 or any later version.
+# FIRST CharOfString <root@CharOfString.cc>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-28 23:14+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "GXDE Desktop Environment Installer"
+msgstr ""
