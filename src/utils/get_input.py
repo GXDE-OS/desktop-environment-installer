@@ -66,6 +66,12 @@ def get_dir(prompt: str, create_mode: bool, must_empty: bool) -> str:
     else:
       user_input = input(prompt + " " + tr("(DIR)> ")).strip()
 
+    if user_input.startswith("'") and user_input.endswith("'"):
+      user_input = user_input[1:-1]
+
+    if user_input.startswith('"') and user_input.endswith('"'):
+      user_input = user_input[1:-1]
+
     if user_input == "":
       print(tr("Invalid input. Please try again."))
       continue
