@@ -120,3 +120,6 @@ msgstr ""
 
 msgid "You have chosen to exit the installation process."
 msgstr ""
+
+msgid "None of supported package managers were detected, halted!"
+msgstr ""

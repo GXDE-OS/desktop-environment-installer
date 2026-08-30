@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 from utils.get_input import get_yes_no_input
 from utils.translation import tr
+from utils.package_manager import init_pm_helper
 from core.installer import init_installer
 
 DOMAIN = "desktop-environment-installer"
@@ -48,6 +49,7 @@ def main() -> None:
     print(tr("You have chosen to exit the installation process."))
     sys.exit(0)
 
+  init_pm_helper()
   init_installer()
   print()
 

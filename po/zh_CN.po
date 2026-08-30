@@ -117,3 +117,6 @@ msgstr "还要继续安装吗？"
 
 msgid "You have chosen to exit the installation process."
 msgstr "您已经取消了安装流程。"
+
+msgid "None of supported package managers were detected, halted!"
+msgstr "未找到支持的包管理器，安装工具现已退出..."
