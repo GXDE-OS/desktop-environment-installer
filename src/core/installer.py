@@ -89,4 +89,11 @@ def init_installer() -> None:
     must_empty=True,
   )
 
+def repo_cat(repo_name: str) -> str:
+  return INSTALLATION_REMOTE_BASE + repo_name
+
+def install_dtk_dependencies() -> None:
+  print(tr("Installing dtk dependencies..."))
+
+
 __all__ = ["init_installer"]

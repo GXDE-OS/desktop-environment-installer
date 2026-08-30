@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 06:17-0500\n"
+"POT-Creation-Date: 2026-08-30 06:27-0500\n"
 "PO-Revision-Date: 2026-08-28 23:12+0800\n"
 "Last-Translator: GXDE Team\n"
 "Language-Team: English (United States)\n"
@@ -11,6 +11,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Git clone failed: "
+msgstr "Git clone failed: "
 
 msgid "Invalid input. Please try again."
 msgstr "Invalid input. Please try again."
@@ -88,6 +91,9 @@ msgstr "Is that correct?"
 msgid "Please enter the working directory."
 msgstr "Please enter the working directory."
 
+msgid "Installing dtk dependencies..."
+msgstr "Installing dtk dependencies..."
+
 msgid "GXDE Desktop Environment Installer"
 msgstr "GXDE Desktop Environment Installer"
 
@@ -120,6 +126,3 @@ msgstr "Still proceed with the installation?"
 
 msgid "You have chosen to exit the installation process."
 msgstr "You have chosen to exit the installation process."
-
-msgid "Installing dtk dependencies..."
-msgstr ""
