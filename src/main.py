@@ -49,6 +49,8 @@ def main() -> None:
     sys.exit(0)
 
   init_installer()
+  print()
+  print(tr("Installing dtk dependencies..."))
 
 if __name__ == "__main__":
   main()

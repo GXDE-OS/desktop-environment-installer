@@ -11,8 +11,9 @@
 
 # Cache
 src/__pycache__/*
-src/utils/__pycache__/*
 src/core/__pycache__/*
+src/definitions/__pycache__/*
+src/utils/__pycache__/*
 tests/__pycache__/*
 
 # Make

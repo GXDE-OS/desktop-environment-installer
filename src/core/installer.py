@@ -22,7 +22,7 @@ from utils.get_input import get_int_with_bound_inclusive, get_yes_no_input
 INSTALLATION_REMOTE_BASE = "https://gitee.com/GXDE-OS/"
 INSTALLATION_USE_SSH = False
 
-def init_installer():
+def init_installer() -> None:
   global INSTALLATION_REMOTE_BASE, INSTALLATION_USE_SSH
 
   while True:

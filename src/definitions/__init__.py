@@ -1,0 +1,1 @@
+"""Installer's definitions package."""
