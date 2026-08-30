@@ -43,3 +43,42 @@ msgstr ""
 
 msgid "Still proceed with the installation?"
 msgstr ""
+
+msgid "You have chosen to exit the installation process."
+msgstr ""
+
+msgid "Please choose from following repository sources:"
+msgstr ""
+
+msgid "  1. Gitee official"
+msgstr ""
+
+msgid "  2. GiHub official"
+msgstr ""
+
+msgid "  3. Manually entering mirror source"
+msgstr ""
+
+msgid "The integer you have input exceeded the range required, please try again."
+msgstr ""
+
+msgid "Do you want to use SSH?"
+msgstr ""
+
+msgid "Third-party mirror sources are maintained by their respective providers and are not verified by the GXDE project. Before continuing, please make sure that you trust the selected source. The GXDE project is not responsible for issues caused by third-party sources."
+msgstr ""
+
+msgid "Still proceed?"
+msgstr ""
+
+msgid "Please enter the mirror source URL."
+msgstr ""
+
+msgid "We are now using: "
+msgstr ""
+
+msgid "<REPO_NAME>"
+msgstr ""
+
+msgid "Is that correct?"
+msgstr ""

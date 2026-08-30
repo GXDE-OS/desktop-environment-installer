@@ -3,3 +3,13 @@
 > 当前此程序正在开发的早期阶段！！
 
 本程序可以让您在其他发行版上安装GXDE桌面环境而无需安装GXDE OS或GXDE子系统。
+
+## 构建
+```bash
+$ make
+```
+
+## 运行
+```bash
+$ ./dist/gxde-desktop-environment-installer
+```

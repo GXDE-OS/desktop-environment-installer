@@ -21,6 +21,7 @@ import sys
 from pathlib import Path
 from utils.get_input import get_yes_no_input
 from utils.translation import tr
+from core.installer import init_installer
 
 DOMAIN = "desktop-environment-installer"
 DEFAULT_LANGUAGE = "en_US"
@@ -44,7 +45,10 @@ def main() -> None:
 
   proceed = get_yes_no_input(tr("Still proceed with the installation?"))
   if not proceed:
+    print(tr("You have chosen to exit the installation process."))
     sys.exit(0)
+
+  init_installer()
 
 if __name__ == "__main__":
   main()

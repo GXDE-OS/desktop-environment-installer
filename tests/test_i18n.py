@@ -47,7 +47,7 @@ class I18nTest(unittest.TestCase):
 
   def test_get_input_uses_the_active_translation(self) -> None:
     output = self.run_app("zh_CN", "x\nn\n")
-    self.assertIn("我chovy, 你输入给我输入好了呀！！", output)
+    self.assertIn("输入无效，请重试...", output)
 
 
 if __name__ == "__main__":
