@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 06:27-0500\n"
+"POT-Creation-Date: 2026-08-30 11:32-0500\n"
 "PO-Revision-Date: 2026-08-28 23:12+0800\n"
 "Last-Translator: GXDE Team\n"
 "Language-Team: English (United States)\n"
@@ -43,6 +43,9 @@ msgstr "The directory is not empty. Please try again."
 
 msgid "Failed to access the directory: "
 msgstr "Failed to access the directory: "
+
+msgid "None of supported package managers were detected, halted!"
+msgstr "None of supported package managers were detected, halted!"
 
 msgid "Please choose from following repository sources:"
 msgstr "Please choose from following repository sources:"
@@ -91,8 +94,32 @@ msgstr "Is that correct?"
 msgid "Please enter the working directory."
 msgstr "Please enter the working directory."
 
-msgid "Installing dtk dependencies..."
-msgstr "Installing dtk dependencies..."
+msgid "Failed to clone repository: "
+msgstr "Failed to clone repository: "
+
+msgid "Installation failed due to error occurred."
+msgstr "Installation failed because an error occurred."
+
+msgid "Successfully cloned repository: "
+msgstr "Successfully cloned repository: "
+
+msgid "PM Test hit: Advanced Packaging Tools."
+msgstr "PM Test hit: Advanced Packaging Tools."
+
+msgid "Successfully generated installation scripts for repository: "
+msgstr "Successfully generated installation scripts for repository: "
+
+msgid "Failed to start package build: "
+msgstr "Failed to start package build: "
+
+msgid "Failed to build repository: "
+msgstr "Failed to build repository: "
+
+msgid "Successfully built repository: "
+msgstr "Successfully built repository: "
+
+msgid "Installing dtk2 dependencies..."
+msgstr "Installing DTK2 dependencies..."
 
 msgid "GXDE Desktop Environment Installer"
 msgstr "GXDE Desktop Environment Installer"
@@ -126,6 +153,3 @@ msgstr "Still proceed with the installation?"
 
 msgid "You have chosen to exit the installation process."
 msgstr "You have chosen to exit the installation process."
-
-msgid "None of supported package managers were detected, halted!"
-msgstr "None of supported package managers were detected, halted!"

@@ -20,6 +20,7 @@ package: compile-translations
 		--onefile \
 		--name=$(PACKAGE) \
 		--add-data="$(CURDIR)/locale:locale" \
+		--add-data="$(CURDIR)/res/installation_scripts:res/installation_scripts" \
 		--distpath=$(DIST_DIR) \
 		--workpath=$(BUILD_DIR) \
 		--specpath=$(BUILD_DIR) \

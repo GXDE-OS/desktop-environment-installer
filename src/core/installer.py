@@ -16,16 +16,28 @@
 # GXDE Desktop Environment Installer.If not,
 # see <https://www.gnu.org/licenses/>.
 
+import os
+from pathlib import Path
+import shutil
+import sys
+
 from utils.translation import tr
 from utils.get_input import (
   get_dir,
   get_int_with_bound_inclusive,
   get_yes_no_input,
 )
+from utils.git import git_clone
+from utils.package_manager import PackageManager, get_pm
+from definitions.modules import DTK2_MODULES
 
 INSTALLATION_REMOTE_BASE = "https://gitee.com/GXDE-OS/"
 INSTALLATION_USE_SSH = False
 WORKING_DIR = "./"
+BUNDLE_ROOT = Path(
+  getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent.parent)
+)
+INSTALLATION_SCRIPTS_DIR = BUNDLE_ROOT / "res" / "installation_scripts"
 
 def init_installer() -> None:
   global INSTALLATION_REMOTE_BASE, INSTALLATION_USE_SSH, WORKING_DIR
@@ -92,8 +104,62 @@ def init_installer() -> None:
 def repo_cat(repo_name: str) -> str:
   return INSTALLATION_REMOTE_BASE + repo_name
 
-def install_dtk_dependencies() -> None:
-  print(tr("Installing dtk dependencies..."))
+def repo_clone_dest_cat(repo_name: str) -> str:
+  return WORKING_DIR + "/" + repo_name
+
+def gen_artifact(repo_name: str) -> None:
+  repo_dest = repo_clone_dest_cat(repo_name)
+  clone_res = git_clone(repo_cat(repo_name), repo_dest, INSTALLATION_USE_SSH)
+  if not clone_res:
+    print(tr("Failed to clone repository: ") + repo_name)
+    print(tr("Installation failed due to error occurred."))
+    exit(1)
+
+  print(tr("Successfully cloned repository: ") + repo_name)
+
+  if get_pm() == PackageManager.APT:
+    print(tr("PM Test hit: Advanced Packaging Tools."))
+    shutil.copytree(
+      INSTALLATION_SCRIPTS_DIR,
+      Path(repo_dest),
+      dirs_exist_ok=True,
+    )
+    print(tr("Successfully generated installation scripts for repository: ")
+      + repo_name)
+
+    build_pid = os.fork()
+    if build_pid == 0:
+      try:
+        os.chdir(repo_dest)
+        os.execl(
+          "./gxde_build_deb.sh",
+          "./gxde_build_deb.sh",
+          "-d",
+        )
+      except OSError as error:
+        print(
+          tr("Failed to start package build: ") + str(error),
+          file=sys.stderr,
+          flush=True,
+        )
+        os._exit(1)
+
+    _, build_status = os.waitpid(build_pid, 0)
+    if os.waitstatus_to_exitcode(build_status) != 0:
+      print(tr("Failed to build repository: ") + repo_name)
+      print(tr("Installation failed due to error occurred."))
+      exit(1)
+    else:
+      print(tr("Successfully built repository: ") + repo_name)
+
+def install_current_stage(archive_name: str) -> None:
+  return
+
+def install_dtk2() -> None:
+  print(tr("Installing dtk2 dependencies..."))
+  for module in DTK2_MODULES:
+    gen_artifact(module)
+    print()
 
 
 __all__ = ["init_installer"]

@@ -32,6 +32,8 @@ PM_CANDIDATES = {
 CURRENT_PM = PackageManager.UNSUPPORTED
 
 def init_pm_helper() -> None:
+  global CURRENT_PM
+
   for (cur, val) in PM_CANDIDATES.items():
     if shutil.which(cur):
       CURRENT_PM = val

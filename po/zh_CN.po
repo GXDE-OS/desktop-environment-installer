@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 06:27-0500\n"
+"POT-Creation-Date: 2026-08-30 11:32-0500\n"
 "PO-Revision-Date: 2026-08-28 00:00+0800\n"
 "Last-Translator: GXDE Team\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -42,6 +42,9 @@ msgstr "该目录不为空，请重试..."
 
 msgid "Failed to access the directory: "
 msgstr "无法访问目录："
+
+msgid "None of supported package managers were detected, halted!"
+msgstr "未找到支持的包管理器，安装工具现已退出..."
 
 msgid "Please choose from following repository sources:"
 msgstr "请选择仓库的来源："
@@ -88,8 +91,32 @@ msgstr "对吗？"
 msgid "Please enter the working directory."
 msgstr "请输入工作目录。"
 
-msgid "Installing dtk dependencies..."
-msgstr "正在安装DTK框架..."
+msgid "Failed to clone repository: "
+msgstr "克隆仓库失败："
+
+msgid "Installation failed due to error occurred."
+msgstr "发生错误，安装失败。"
+
+msgid "Successfully cloned repository: "
+msgstr "仓库克隆成功："
+
+msgid "PM Test hit: Advanced Packaging Tools."
+msgstr "包管理器检测结果：Advanced Packaging Tools。"
+
+msgid "Successfully generated installation scripts for repository: "
+msgstr "已为仓库成功生成安装脚本："
+
+msgid "Failed to start package build: "
+msgstr "启动软件包构建失败："
+
+msgid "Failed to build repository: "
+msgstr "构建仓库失败："
+
+msgid "Successfully built repository: "
+msgstr "仓库构建成功："
+
+msgid "Installing dtk2 dependencies..."
+msgstr "正在安装 DTK2 依赖..."
 
 msgid "GXDE Desktop Environment Installer"
 msgstr "GXDE桌面环境安装器"
@@ -117,6 +144,3 @@ msgstr "还要继续安装吗？"
 
 msgid "You have chosen to exit the installation process."
 msgstr "您已经取消了安装流程。"
-
-msgid "None of supported package managers were detected, halted!"
-msgstr "未找到支持的包管理器，安装工具现已退出..."

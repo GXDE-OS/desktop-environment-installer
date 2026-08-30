@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 06:27-0500\n"
+"POT-Creation-Date: 2026-08-30 11:32-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -46,6 +46,9 @@ msgid "The directory is not empty. Please try again."
 msgstr ""
 
 msgid "Failed to access the directory: "
+msgstr ""
+
+msgid "None of supported package managers were detected, halted!"
 msgstr ""
 
 msgid "Please choose from following repository sources:"
@@ -91,7 +94,31 @@ msgstr ""
 msgid "Please enter the working directory."
 msgstr ""
 
-msgid "Installing dtk dependencies..."
+msgid "Failed to clone repository: "
+msgstr ""
+
+msgid "Installation failed due to error occurred."
+msgstr ""
+
+msgid "Successfully cloned repository: "
+msgstr ""
+
+msgid "PM Test hit: Advanced Packaging Tools."
+msgstr ""
+
+msgid "Successfully generated installation scripts for repository: "
+msgstr ""
+
+msgid "Failed to start package build: "
+msgstr ""
+
+msgid "Failed to build repository: "
+msgstr ""
+
+msgid "Successfully built repository: "
+msgstr ""
+
+msgid "Installing dtk2 dependencies..."
 msgstr ""
 
 msgid "GXDE Desktop Environment Installer"
@@ -119,7 +146,4 @@ msgid "Still proceed with the installation?"
 msgstr ""
 
 msgid "You have chosen to exit the installation process."
-msgstr ""
-
-msgid "None of supported package managers were detected, halted!"
 msgstr ""

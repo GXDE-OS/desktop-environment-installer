@@ -16,7 +16,7 @@
 # GXDE Desktop Environment Installer.If not,
 # see <https://www.gnu.org/licenses/>.
 
-DTK_MODULES = [
+DTK2_MODULES = [
   "dtk2widget-qt6",
   "gxde-qt6-integration"
 ]
