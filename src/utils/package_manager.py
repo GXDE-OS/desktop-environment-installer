@@ -16,17 +16,37 @@
 # GXDE Desktop Environment Installer.If not,
 # see <https://www.gnu.org/licenses/>.
 
+from dataclasses import dataclass
+from enum import Enum
 import shutil
 
 from utils.translation import tr
-from enum import Enum
 
 class PackageManager(Enum):
   UNSUPPORTED = 0
   APT = 1
 
+@dataclass(frozen=True)
+class PackageManagerAdapter:
+  detection_command: str
+  display_name: str
+  build_command: tuple[str, ...]
+  artifact_patterns: tuple[str, ...]
+  install_command: tuple[str, ...]
+
+PM_ADAPTERS = {
+  PackageManager.APT: PackageManagerAdapter(
+    detection_command="apt",
+    display_name="Advanced Packaging Tools",
+    build_command=("./gxde_build_deb.sh", "-d"),
+    artifact_patterns=("*.deb",),
+    install_command=("sudo", "apt", "install"),
+  ),
+}
+
 PM_CANDIDATES = {
-  "apt": PackageManager.APT
+  adapter.detection_command: package_manager
+  for package_manager, adapter in PM_ADAPTERS.items()
 }
 
 CURRENT_PM = PackageManager.UNSUPPORTED
@@ -45,4 +65,13 @@ def init_pm_helper() -> None:
 def get_pm() -> PackageManager:
   return CURRENT_PM
 
-__all__ = ["PackageManager", "init_pm_helper", "get_pm"]
+def get_pm_adapter() -> PackageManagerAdapter | None:
+  return PM_ADAPTERS.get(CURRENT_PM)
+
+__all__ = [
+  "PackageManager",
+  "PackageManagerAdapter",
+  "init_pm_helper",
+  "get_pm",
+  "get_pm_adapter",
+]

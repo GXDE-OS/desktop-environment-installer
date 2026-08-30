@@ -34,6 +34,16 @@ class PackageManagerTest(unittest.TestCase):
       package_manager.PackageManager.APT,
       package_manager.get_pm(),
     )
+    self.assertEqual(
+      package_manager.PackageManagerAdapter(
+        detection_command="apt",
+        display_name="Advanced Packaging Tools",
+        build_command=("./gxde_build_deb.sh", "-d"),
+        artifact_patterns=("*.deb",),
+        install_command=("sudo", "apt", "install"),
+      ),
+      package_manager.get_pm_adapter(),
+    )
 
 
 if __name__ == "__main__":

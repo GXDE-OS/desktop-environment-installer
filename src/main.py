@@ -22,7 +22,7 @@ from pathlib import Path
 from utils.get_input import get_yes_no_input
 from utils.translation import tr
 from utils.package_manager import init_pm_helper
-from core.installer import init_installer
+from core.installer import init_installer, install_dtk2
 
 DOMAIN = "desktop-environment-installer"
 DEFAULT_LANGUAGE = "en_US"
@@ -52,6 +52,7 @@ def main() -> None:
   init_pm_helper()
   init_installer()
   print()
+  install_dtk2()
 
 if __name__ == "__main__":
   main()

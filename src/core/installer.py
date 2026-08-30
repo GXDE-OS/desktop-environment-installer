@@ -28,8 +28,8 @@ from utils.get_input import (
   get_yes_no_input,
 )
 from utils.git import git_clone
-from utils.package_manager import PackageManager, get_pm
-from definitions.modules import DTK2_MODULES
+from utils.package_manager import get_pm_adapter
+from definitions.modules import DTK2_MODULES, ModuleDefinition
 
 INSTALLATION_REMOTE_BASE = "https://gitee.com/GXDE-OS/"
 INSTALLATION_USE_SSH = False
@@ -107,59 +107,167 @@ def repo_cat(repo_name: str) -> str:
 def repo_clone_dest_cat(repo_name: str) -> str:
   return WORKING_DIR + "/" + repo_name
 
-def gen_artifact(repo_name: str) -> None:
+def gen_artifact(module: ModuleDefinition) -> None:
+  pm_adapter = get_pm_adapter()
+  if pm_adapter is None:
+    print(
+      tr("Warning: no supported package manager adapter is available."),
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  repo_name = module["repo_name"]
+  display_name = module["display_name"]
   repo_dest = repo_clone_dest_cat(repo_name)
-  clone_res = git_clone(repo_cat(repo_name), repo_dest, INSTALLATION_USE_SSH)
+  clone_res = git_clone(
+    repo_cat(repo_name),
+    repo_dest,
+    branch=module["branch"],
+  )
   if not clone_res:
-    print(tr("Failed to clone repository: ") + repo_name)
+    print(tr("Failed to clone repository: ") + display_name)
+    print(tr("Installation failed due to error occurred."))
+    sys.exit(1)
+
+  print(tr("Successfully cloned repository: ") + display_name)
+  print(tr("Detected package manager: ") + pm_adapter.display_name)
+
+  shutil.copytree(
+    INSTALLATION_SCRIPTS_DIR,
+    Path(repo_dest),
+    dirs_exist_ok=True,
+  )
+  print(tr("Successfully generated installation scripts for repository: ")
+    + display_name)
+
+  build_pid = os.fork()
+  if build_pid == 0:
+    try:
+      os.chdir(repo_dest)
+      os.execvp(pm_adapter.build_command[0], list(pm_adapter.build_command))
+    except OSError as error:
+      print(
+        tr("Failed to start package build: ") + str(error),
+        file=sys.stderr,
+        flush=True,
+      )
+      os._exit(1)
+
+  _, build_status = os.waitpid(build_pid, 0)
+  if os.waitstatus_to_exitcode(build_status) != 0:
+    print(tr("Failed to build repository: ") + display_name)
     print(tr("Installation failed due to error occurred."))
     exit(1)
 
-  print(tr("Successfully cloned repository: ") + repo_name)
-
-  if get_pm() == PackageManager.APT:
-    print(tr("PM Test hit: Advanced Packaging Tools."))
-    shutil.copytree(
-      INSTALLATION_SCRIPTS_DIR,
-      Path(repo_dest),
-      dirs_exist_ok=True,
-    )
-    print(tr("Successfully generated installation scripts for repository: ")
-      + repo_name)
-
-    build_pid = os.fork()
-    if build_pid == 0:
-      try:
-        os.chdir(repo_dest)
-        os.execl(
-          "./gxde_build_deb.sh",
-          "./gxde_build_deb.sh",
-          "-d",
-        )
-      except OSError as error:
-        print(
-          tr("Failed to start package build: ") + str(error),
-          file=sys.stderr,
-          flush=True,
-        )
-        os._exit(1)
-
-    _, build_status = os.waitpid(build_pid, 0)
-    if os.waitstatus_to_exitcode(build_status) != 0:
-      print(tr("Failed to build repository: ") + repo_name)
-      print(tr("Installation failed due to error occurred."))
-      exit(1)
-    else:
-      print(tr("Successfully built repository: ") + repo_name)
+  print(tr("Successfully built repository: ") + display_name)
 
 def install_current_stage(archive_name: str) -> None:
-  return
+  pm_adapter = get_pm_adapter()
+  if pm_adapter is None:
+    print(
+      tr("Warning: no supported package manager adapter is available."),
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  archive_path = Path(archive_name)
+  if (
+      archive_path.is_absolute()
+      or len(archive_path.parts) != 1
+      or archive_name in {".", ".."}
+    ):
+    print(
+      tr("Warning: invalid artifact archive name: ") + archive_name,
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  artifacts_dir = (Path(WORKING_DIR) / "artifacts").resolve()
+  try:
+    packages = sorted({
+      package.resolve()
+      for pattern in pm_adapter.artifact_patterns
+      for package in artifacts_dir.glob(pattern)
+      if package.is_file()
+    })
+  except OSError as error:
+    print(
+      tr("Warning: failed to read the artifacts directory: ") + str(error),
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  if not packages:
+    print(
+      tr("Warning: no package artifacts were found in: ")
+      + str(artifacts_dir),
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  try:
+    install_pid = os.fork()
+  except OSError as error:
+    print(
+      tr("Warning: failed to create the package installation process: ")
+      + str(error),
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  if install_pid == 0:
+    try:
+      install_command = [
+        *pm_adapter.install_command,
+        *(str(package) for package in packages),
+      ]
+      os.execvp(install_command[0], install_command)
+    except OSError as error:
+      print(
+        tr("Warning: failed to start package installation: ") + str(error),
+        file=sys.stderr,
+        flush=True,
+      )
+      os._exit(1)
+
+  try:
+    _, install_status = os.waitpid(install_pid, 0)
+  except OSError as error:
+    print(
+      tr("Warning: failed while waiting for package installation: ")
+      + str(error),
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  if os.waitstatus_to_exitcode(install_status) != 0:
+    print(
+      tr("Warning: failed to install the current stage: ") + archive_name,
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  archive_dir = artifacts_dir / archive_name
+  try:
+    archive_dir.mkdir(exist_ok=True)
+    for package in packages:
+      package.replace(archive_dir / package.name)
+  except OSError as error:
+    print(
+      tr("Warning: failed to archive installed packages: ")
+      + str(error),
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  print(tr("Successfully installed the current stage: ") + archive_name)
+  print(tr("Archived installed packages in: ") + str(archive_dir))
 
 def install_dtk2() -> None:
   print(tr("Installing dtk2 dependencies..."))
   for module in DTK2_MODULES:
     gen_artifact(module)
     print()
-
+  install_current_stage("dtk2")
 
 __all__ = ["init_installer"]

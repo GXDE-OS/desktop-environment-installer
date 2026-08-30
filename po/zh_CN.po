@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 11:32-0500\n"
+"POT-Creation-Date: 2026-08-30 11:43-0500\n"
 "PO-Revision-Date: 2026-08-28 00:00+0800\n"
 "Last-Translator: GXDE Team\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -91,6 +91,9 @@ msgstr "对吗？"
 msgid "Please enter the working directory."
 msgstr "请输入工作目录。"
 
+msgid "Warning: no supported package manager adapter is available."
+msgstr "警告：没有可用的受支持包管理器适配器。"
+
 msgid "Failed to clone repository: "
 msgstr "克隆仓库失败："
 
@@ -100,8 +103,8 @@ msgstr "发生错误，安装失败。"
 msgid "Successfully cloned repository: "
 msgstr "仓库克隆成功："
 
-msgid "PM Test hit: Advanced Packaging Tools."
-msgstr "包管理器检测结果：Advanced Packaging Tools。"
+msgid "Detected package manager: "
+msgstr "检测到包管理器："
 
 msgid "Successfully generated installation scripts for repository: "
 msgstr "已为仓库成功生成安装脚本："
@@ -114,6 +117,36 @@ msgstr "构建仓库失败："
 
 msgid "Successfully built repository: "
 msgstr "仓库构建成功："
+
+msgid "Warning: invalid artifact archive name: "
+msgstr "警告：无效的产物归档名称："
+
+msgid "Warning: failed to read the artifacts directory: "
+msgstr "警告：读取产物目录失败："
+
+msgid "Warning: no package artifacts were found in: "
+msgstr "警告：在以下目录中未找到软件包产物："
+
+msgid "Warning: failed to create the package installation process: "
+msgstr "警告：创建软件包安装进程失败："
+
+msgid "Warning: failed to start package installation: "
+msgstr "警告：启动软件包安装失败："
+
+msgid "Warning: failed while waiting for package installation: "
+msgstr "警告：等待软件包安装时发生错误："
+
+msgid "Warning: failed to install the current stage: "
+msgstr "警告：当前阶段安装失败："
+
+msgid "Warning: failed to archive installed packages: "
+msgstr "警告：归档已安装的软件包失败："
+
+msgid "Successfully installed the current stage: "
+msgstr "当前阶段安装成功："
+
+msgid "Archived installed packages in: "
+msgstr "已安装的软件包已归档至："
 
 msgid "Installing dtk2 dependencies..."
 msgstr "正在安装 DTK2 依赖..."

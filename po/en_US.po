@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 11:32-0500\n"
+"POT-Creation-Date: 2026-08-30 11:43-0500\n"
 "PO-Revision-Date: 2026-08-28 23:12+0800\n"
 "Last-Translator: GXDE Team\n"
 "Language-Team: English (United States)\n"
@@ -94,6 +94,9 @@ msgstr "Is that correct?"
 msgid "Please enter the working directory."
 msgstr "Please enter the working directory."
 
+msgid "Warning: no supported package manager adapter is available."
+msgstr "Warning: no supported package manager adapter is available."
+
 msgid "Failed to clone repository: "
 msgstr "Failed to clone repository: "
 
@@ -103,8 +106,8 @@ msgstr "Installation failed because an error occurred."
 msgid "Successfully cloned repository: "
 msgstr "Successfully cloned repository: "
 
-msgid "PM Test hit: Advanced Packaging Tools."
-msgstr "PM Test hit: Advanced Packaging Tools."
+msgid "Detected package manager: "
+msgstr "Detected package manager: "
 
 msgid "Successfully generated installation scripts for repository: "
 msgstr "Successfully generated installation scripts for repository: "
@@ -117,6 +120,36 @@ msgstr "Failed to build repository: "
 
 msgid "Successfully built repository: "
 msgstr "Successfully built repository: "
+
+msgid "Warning: invalid artifact archive name: "
+msgstr "Warning: invalid artifact archive name: "
+
+msgid "Warning: failed to read the artifacts directory: "
+msgstr "Warning: failed to read the artifacts directory: "
+
+msgid "Warning: no package artifacts were found in: "
+msgstr "Warning: no package artifacts were found in: "
+
+msgid "Warning: failed to create the package installation process: "
+msgstr "Warning: failed to create the package installation process: "
+
+msgid "Warning: failed to start package installation: "
+msgstr "Warning: failed to start package installation: "
+
+msgid "Warning: failed while waiting for package installation: "
+msgstr "Warning: failed while waiting for package installation: "
+
+msgid "Warning: failed to install the current stage: "
+msgstr "Warning: failed to install the current stage: "
+
+msgid "Warning: failed to archive installed packages: "
+msgstr "Warning: failed to archive installed packages: "
+
+msgid "Successfully installed the current stage: "
+msgstr "Successfully installed the current stage: "
+
+msgid "Archived installed packages in: "
+msgstr "Archived installed packages in: "
 
 msgid "Installing dtk2 dependencies..."
 msgstr "Installing DTK2 dependencies..."

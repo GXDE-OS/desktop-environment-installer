@@ -16,7 +16,24 @@
 # GXDE Desktop Environment Installer.If not,
 # see <https://www.gnu.org/licenses/>.
 
-DTK2_MODULES = [
-  "dtk2widget-qt6",
-  "gxde-qt6-integration"
+from typing import TypedDict
+
+
+class ModuleDefinition(TypedDict):
+  repo_name: str
+  display_name: str
+  branch: str
+
+
+DTK2_MODULES: list[ModuleDefinition] = [
+  {
+    "repo_name": "dtk2widget-qt6",
+    "display_name": "DTK2-Widget (Qt6 port)",
+    "branch": "qt6",
+  },
+  {
+    "repo_name": "gxde-qt6-integration",
+    "display_name": "DTK2-Widget integration (Qt6 port)",
+    "branch": "qt6",
+  },
 ]

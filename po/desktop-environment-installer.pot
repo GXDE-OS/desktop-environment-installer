@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 11:32-0500\n"
+"POT-Creation-Date: 2026-08-30 11:43-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -94,6 +94,9 @@ msgstr ""
 msgid "Please enter the working directory."
 msgstr ""
 
+msgid "Warning: no supported package manager adapter is available."
+msgstr ""
+
 msgid "Failed to clone repository: "
 msgstr ""
 
@@ -103,7 +106,7 @@ msgstr ""
 msgid "Successfully cloned repository: "
 msgstr ""
 
-msgid "PM Test hit: Advanced Packaging Tools."
+msgid "Detected package manager: "
 msgstr ""
 
 msgid "Successfully generated installation scripts for repository: "
@@ -116,6 +119,36 @@ msgid "Failed to build repository: "
 msgstr ""
 
 msgid "Successfully built repository: "
+msgstr ""
+
+msgid "Warning: invalid artifact archive name: "
+msgstr ""
+
+msgid "Warning: failed to read the artifacts directory: "
+msgstr ""
+
+msgid "Warning: no package artifacts were found in: "
+msgstr ""
+
+msgid "Warning: failed to create the package installation process: "
+msgstr ""
+
+msgid "Warning: failed to start package installation: "
+msgstr ""
+
+msgid "Warning: failed while waiting for package installation: "
+msgstr ""
+
+msgid "Warning: failed to install the current stage: "
+msgstr ""
+
+msgid "Warning: failed to archive installed packages: "
+msgstr ""
+
+msgid "Successfully installed the current stage: "
+msgstr ""
+
+msgid "Archived installed packages in: "
 msgstr ""
 
 msgid "Installing dtk2 dependencies..."
