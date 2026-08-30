@@ -24,7 +24,12 @@ class InstallerTest(unittest.TestCase):
   def test_selects_official_gitee_ssh_source(self) -> None:
     output = StringIO()
 
-    with patch.object(installer, "get_int_with_bound_inclusive", return_value=1), \
+    with patch.object(
+        installer,
+        "get_dir",
+        return_value="/tmp/gxde-work",
+      ) as get_dir_mock, \
+        patch.object(installer, "get_int_with_bound_inclusive", return_value=1), \
         patch.object(installer, "get_yes_no_input", side_effect=[True, True]), \
         redirect_stdout(output):
       installer.init_installer()
@@ -35,11 +40,21 @@ class InstallerTest(unittest.TestCase):
       installer.INSTALLATION_REMOTE_BASE,
     )
     self.assertTrue(installer.INSTALLATION_USE_SSH)
+    self.assertEqual("/tmp/gxde-work", installer.WORKING_DIR)
+    get_dir_mock.assert_called_once_with(
+      installer.tr("Please enter the working directory."),
+      create_mode=True,
+      must_empty=True,
+    )
 
   def test_reselects_source_after_rejecting_custom_source(self) -> None:
     output = StringIO()
 
     with patch.object(
+        installer,
+        "get_dir",
+        return_value="/tmp/gxde-work",
+      ), patch.object(
         installer,
         "get_int_with_bound_inclusive",
         side_effect=[3, 1],
@@ -58,6 +73,7 @@ class InstallerTest(unittest.TestCase):
       installer.INSTALLATION_REMOTE_BASE,
     )
     self.assertFalse(installer.INSTALLATION_USE_SSH)
+    self.assertEqual("/tmp/gxde-work", installer.WORKING_DIR)
 
 
 if __name__ == "__main__":

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-29 00:00+0800\n"
+"POT-Creation-Date: 2026-08-30 06:17-0500\n"
 "PO-Revision-Date: 2026-08-28 00:00+0800\n"
 "Last-Translator: GXDE Team\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -14,6 +14,76 @@ msgstr ""
 
 msgid "Invalid input. Please try again."
 msgstr "输入无效，请重试..."
+
+msgid ""
+"The integer you have input exceeded the range required, please try again."
+msgstr "您输入的整数超出预期范围，请重试..."
+
+msgid "(DIR)> "
+msgstr "(路径)> "
+
+msgid "Invalid directory path. Please try again."
+msgstr "目录路径无效，请重试..."
+
+msgid "The path is not a directory. Please try again."
+msgstr "该路径不是目录，请重试..."
+
+msgid "The directory does not exist. Please try again."
+msgstr "该目录不存在，请重试..."
+
+msgid "Failed to create the directory: "
+msgstr "无法创建目录："
+
+msgid "The directory is not empty. Please try again."
+msgstr "该目录不为空，请重试..."
+
+msgid "Failed to access the directory: "
+msgstr "无法访问目录："
+
+msgid "Please choose from following repository sources:"
+msgstr "请选择仓库的来源："
+
+msgid "  1. Gitee official"
+msgstr "  1. Gitee (码云) 上的GXDE-OS"
+
+msgid "  2. GiHub official"
+msgstr "  2. GiHub上的GXDE-OS"
+
+msgid "  3. Manually entering mirror source"
+msgstr "  3. 手动配置镜像源"
+
+msgid "Do you want to use SSH?"
+msgstr "您想要使用SSH吗？"
+
+msgid ""
+"Third-party mirror sources are maintained by their respective providers and "
+"are not verified by the GXDE project. Before continuing, please make sure "
+"that you trust the selected source. The GXDE project is not responsible for "
+"issues caused by third-party sources."
+msgstr ""
+"第三方镜像源由相应的提供者维护，未经GXDE项目验证。继续前，请确认您信任所选的"
+"镜像源。GXDE项目不对使用第三方源所导致的问题负责。"
+
+msgid "Still proceed?"
+msgstr "还要继续吗？"
+
+msgid "Please enter the mirror source URL."
+msgstr "请输入镜像源的地址。"
+
+msgid "URL)> "
+msgstr ""
+
+msgid "We are now using: "
+msgstr "我们当前使用的源地址是: "
+
+msgid "<REPO_NAME>"
+msgstr "<仓库名>"
+
+msgid "Is that correct?"
+msgstr "对吗？"
+
+msgid "Please enter the working directory."
+msgstr "请输入工作目录。"
 
 msgid "GXDE Desktop Environment Installer"
 msgstr "GXDE桌面环境安装器"
@@ -42,38 +112,5 @@ msgstr "还要继续安装吗？"
 msgid "You have chosen to exit the installation process."
 msgstr "您已经取消了安装流程。"
 
-msgid "Please choose from following repository sources:"
-msgstr "请选择仓库的来源："
-
-msgid "  1. Gitee official"
-msgstr "  1. Gitee (码云) 上的GXDE-OS"
-
-msgid "  2. GiHub official"
-msgstr "  2. GiHub上的GXDE-OS"
-
-msgid "  3. Manually entering mirror source"
-msgstr "  3. 手动配置镜像源"
-
-msgid "The integer you have input exceeded the range required, please try again."
-msgstr "您输入的整数超出预期范围，请重试..."
-
-msgid "Do you want to use SSH?"
-msgstr "您想要使用SSH吗？"
-
-msgid "Third-party mirror sources are maintained by their respective providers and are not verified by the GXDE project. Before continuing, please make sure that you trust the selected source. The GXDE project is not responsible for issues caused by third-party sources."
-msgstr "第三方镜像源由相应的提供者维护，未经GXDE项目验证。继续前，请确认您信任所选的镜像源。GXDE项目不对使用第三方源所导致的问题负责。"
-
-msgid "Still proceed?"
-msgstr "还要继续吗？"
-
-msgid "Please enter the mirror source URL."
-msgstr "请输入镜像源的地址。"
-
-msgid "We are now using: "
-msgstr "我们当前使用的源地址是: "
-
-msgid "<REPO_NAME>"
-msgstr "<仓库名>"
-
-msgid "Is that correct?"
-msgstr "对吗？"
+msgid "Installing dtk dependencies..."
+msgstr ""

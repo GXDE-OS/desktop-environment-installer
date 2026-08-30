@@ -2,7 +2,9 @@
 name = "gxde-desktop-environment-installer"
 version = "0.1.0"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "gitpython>=3.1.61",
+]
 
 [project.optional-dependencies]
 build = ["pyinstaller>=6.0"]

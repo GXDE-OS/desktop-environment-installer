@@ -17,13 +17,18 @@
 # see <https://www.gnu.org/licenses/>.
 
 from utils.translation import tr
-from utils.get_input import get_int_with_bound_inclusive, get_yes_no_input
+from utils.get_input import (
+  get_dir,
+  get_int_with_bound_inclusive,
+  get_yes_no_input,
+)
 
 INSTALLATION_REMOTE_BASE = "https://gitee.com/GXDE-OS/"
 INSTALLATION_USE_SSH = False
+WORKING_DIR = "./"
 
 def init_installer() -> None:
-  global INSTALLATION_REMOTE_BASE, INSTALLATION_USE_SSH
+  global INSTALLATION_REMOTE_BASE, INSTALLATION_USE_SSH, WORKING_DIR
 
   while True:
     print("")
@@ -75,6 +80,13 @@ def init_installer() -> None:
     if repo_confirm:
       INSTALLATION_REMOTE_BASE = installation_remote_base
       INSTALLATION_USE_SSH = installation_use_ssh
-      return
+      break
+
+  print("")
+  WORKING_DIR = get_dir(
+    tr("Please enter the working directory."),
+    create_mode=True,
+    must_empty=True,
+  )
 
 __all__ = ["init_installer"]
