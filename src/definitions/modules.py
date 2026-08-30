@@ -37,3 +37,309 @@ DTK2_MODULES: list[ModuleDefinition] = [
     "branch": "qt6",
   },
 ]
+
+DTK5_MODULES: list[ModuleDefinition] = [
+  {
+    "repo_name": "dtk5common",
+    "display_name": "DTK5 Common",
+    "branch": "master",
+  },
+  {
+    "repo_name": "dtk5core",
+    "display_name": "DTK5 Core",
+    "branch": "master",
+  },
+  {
+    "repo_name": "dtklog",
+    "display_name": "DTK Log",
+    "branch": "master",
+  },
+  {
+    "repo_name": "dtk5gui",
+    "display_name": "DTK5 GUI",
+    "branch": "master",
+  },
+  {
+    "repo_name": "dtk5widget",
+    "display_name": "DTK5 Widget",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-qt5integration",
+    "display_name": "GXDE Qt5 Integration",
+    "branch": "master",
+  },
+]
+
+DTK6_MODULES: list[ModuleDefinition] = [
+  {
+    "repo_name": "dtk6core",
+    "display_name": "DTK6 Core",
+    "branch": "master",
+  },
+  {
+    "repo_name": "dtk6log",
+    "display_name": "DTK6 Log",
+    "branch": "master",
+  },
+  {
+    "repo_name": "dtk6gui",
+    "display_name": "DTK6 GUI",
+    "branch": "master",
+  },
+  {
+    "repo_name": "dtk6widget",
+    "display_name": "DTK6 Widget",
+    "branch": "master",
+  },
+  {
+    "repo_name": "dtk6declarative",
+    "display_name": "DTK6 Declarative",
+    "branch": "master",
+  },
+  {
+    "repo_name": "qt6integration",
+    "display_name": "Deepin Qt6 Integration (GXDE modified)",
+    "branch": "master",
+  },
+]
+
+# gxde-desktop-base is reference-only here. It contains GXDE OS distribution
+# configuration for APT, GRUB, systemd, and os-release, so installing it would
+# overwrite host-distribution policy rather than just install the desktop.
+INFRA_MODULES: list[ModuleDefinition] = [
+  {
+    "repo_name": "gxde-k9",
+    "display_name": "GXDE Service Runner",
+    "branch": "master",
+  },
+  {
+    "repo_name": "disomaster-qt6",
+    "display_name": "DISOMaster (Qt6 port)",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-api",
+    "display_name": "GXDE API",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-desktop-schemas",
+    "display_name": "GXDE Desktop Schemas",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-network-utils-qt6",
+    "display_name": "GXDE Network Utils (Qt6 port)",
+    "branch": "master",
+  },
+  {
+    "repo_name": "dde-qt-dbus-factory",
+    "display_name": "GXDE Qt D-Bus Factory",
+    "branch": "master",
+  },
+  {
+    "repo_name": "xdg-desktop-portal-gxde",
+    "display_name": "XDG Desktop Portal for GXDE",
+    "branch": "master",
+  },
+]
+
+CORE_MODULES: list[ModuleDefinition] = [
+  {
+    "repo_name": "gxde-account-faces",
+    "display_name": "GXDE Account Faces",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-icon-theme",
+    "display_name": "GXDE Icon Theme",
+    "branch": "master",
+  },
+  {
+    "repo_name": "deepin-gtk-theme",
+    "display_name": "GXDE GTK Theme",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-artwork",
+    "display_name": "GXDE Artwork",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-wallpapers",
+    "display_name": "GXDE Wallpapers",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-default-settings",
+    "display_name": "GXDE Default Settings",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-shell-tools",
+    "display_name": "GXDE Shell Tools",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-sound-theme",
+    "display_name": "GXDE Sound Theme",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-polkit-agent",
+    "display_name": "GXDE PolicyKit Agent",
+    "branch": "master",
+  },
+  {
+    "repo_name": "deepin-daemon",
+    "display_name": "GXDE System Daemon",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-daemon",
+    "display_name": "GXDE Desktop Daemon",
+    "branch": "master",
+  },
+  {
+    "repo_name": "startgxde",
+    "display_name": "GXDE Session Starter",
+    "branch": "master",
+  },
+  {
+    "repo_name": "deepin-menu",
+    "display_name": "GXDE Application Menu Service",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-dock",
+    "display_name": "GXDE Dock",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-control-center",
+    "display_name": "GXDE Control Center",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-app-installer",
+    "display_name": "GXDE Application Installer",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-app-upgrader",
+    "display_name": "GXDE Application Upgrader",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-app-uninstaller",
+    "display_name": "GXDE Application Uninstaller",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-launcher",
+    "display_name": "GXDE Launcher",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-session-ui",
+    "display_name": "GXDE Session UI",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-file-manager",
+    "display_name": "GXDE File Manager",
+    "branch": "char/qt6_migration",
+  },
+  {
+    "repo_name": "gxde-requ",
+    "display_name": "GXDE Hot Corners",
+    "branch": "master",
+  },
+  {
+    "repo_name": "deepin-screensaver",
+    "display_name": "GXDE Screensaver",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-time-screensaver",
+    "display_name": "GXDE Time Screensaver",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-globalmenu-service",
+    "display_name": "GXDE Global Menu Service",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-top-panel",
+    "display_name": "GXDE Top Panel",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-compressor",
+    "display_name": "GXDE Compressor",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-shell-compressor",
+    "display_name": "GXDE Shell Compressor Integration",
+    "branch": "master",
+  },
+]
+
+X11_SESSION_MODULES: list[ModuleDefinition] = [
+  {
+    "repo_name": "gxde-kglobalacceld",
+    "display_name": "GXDE Global Shortcut Daemon",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-kwin",
+    "display_name": "GXDE KWin compositor",
+    "branch": "5.24",
+  },
+  {
+    "repo_name": "gxde-wm-shim",
+    "display_name": "GXDE window manager compatibility shim",
+    "branch": "debian12",
+  },
+]
+
+WAYLAND_SESSION_MODULES: list[ModuleDefinition] = [
+  {
+    "repo_name": "gxde-wlcom",
+    "display_name": "GXDE Wayland compositor",
+    "branch": "gxde/zhuangzhuang",
+  },
+  {
+    "repo_name": "dde-grand-search",
+    "display_name": "GXDE Grand Search",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-sni-server",
+    "display_name": "GXDE Status Notifier Item Server",
+    "branch": "main",
+  },
+  {
+    "repo_name": "gxde-top-panel-plugins",
+    "display_name": "GXDE Top Panel Plugins",
+    "branch": "d20",
+  },
+  {
+    "repo_name": "gxde-terminal",
+    "display_name": "GXDE Terminal",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-display-manager",
+    "display_name": "GXDE Display Manager",
+    "branch": "main",
+  },
+  {
+    "repo_name": "gxde-wayland-session",
+    "display_name": "GXDE Wayland Session",
+    "branch": "master",
+  },
+]

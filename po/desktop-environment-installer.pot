@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 11:43-0500\n"
+"POT-Creation-Date: 2026-08-30 12:27-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -57,7 +57,7 @@ msgstr ""
 msgid "  1. Gitee official"
 msgstr ""
 
-msgid "  2. GiHub official"
+msgid "  2. GitHub official"
 msgstr ""
 
 msgid "  3. Manually entering mirror source"
@@ -151,7 +151,72 @@ msgstr ""
 msgid "Archived installed packages in: "
 msgstr ""
 
-msgid "Installing dtk2 dependencies..."
+msgid "DTK2 compatibility dependencies"
+msgstr ""
+
+msgid "Installing module stage: "
+msgstr ""
+
+#, python-brace-format
+msgid "Please choose the source for {version_name}."
+msgstr ""
+
+msgid ""
+"Warning: using the system-provided version instead of the GXDE-modified "
+"version may cause some GXDE behavior, such as blur effects, to differ from "
+"the intended experience."
+msgstr ""
+
+msgid ""
+"Warning: installing the GXDE-modified version may change DTK behavior in "
+"other desktop sessions. GXDE does not guarantee that DTK applications will "
+"behave as expected outside the GXDE session."
+msgstr ""
+
+#, python-brace-format
+msgid "Build and install the GXDE-modified version of {version_name}?"
+msgstr ""
+
+msgid "Using the system-provided DTK5 packages."
+msgstr ""
+
+msgid "Using the system-provided DTK6 packages."
+msgstr ""
+
+msgid "GXDE infrastructure dependencies"
+msgstr ""
+
+msgid "GXDE core"
+msgstr ""
+
+msgid "Warning: failed to install optional component: "
+msgstr ""
+
+msgid "Successfully installed optional component: "
+msgstr ""
+
+msgid "Please choose the GXDE session type to install:"
+msgstr ""
+
+msgid "  1. X11 session (including compositor)"
+msgstr ""
+
+msgid "  2. Wayland session (including compositor)"
+msgstr ""
+
+msgid "  3. Both X11 and Wayland sessions"
+msgstr ""
+
+msgid "GXDE X11 session and compositor"
+msgstr ""
+
+msgid "GXDE Wayland session and compositor"
+msgstr ""
+
+msgid "Install APM (Amber Package Manager)?"
+msgstr ""
+
+msgid "Skipping APM installation."
 msgstr ""
 
 msgid "GXDE Desktop Environment Installer"

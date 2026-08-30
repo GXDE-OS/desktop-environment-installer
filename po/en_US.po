@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 11:43-0500\n"
+"POT-Creation-Date: 2026-08-30 12:24-0500\n"
 "PO-Revision-Date: 2026-08-28 23:12+0800\n"
 "Last-Translator: GXDE Team\n"
 "Language-Team: English (United States)\n"
@@ -53,8 +53,8 @@ msgstr "Please choose from following repository sources:"
 msgid "  1. Gitee official"
 msgstr "  1. Gitee official"
 
-msgid "  2. GiHub official"
-msgstr "  2. GiHub official"
+msgid "  2. GitHub official"
+msgstr "  2. GitHub official"
 
 msgid "  3. Manually entering mirror source"
 msgstr "  3. Manually entering mirror source"
@@ -80,7 +80,7 @@ msgid "Please enter the mirror source URL."
 msgstr "Please enter the mirror source URL."
 
 msgid "URL)> "
-msgstr ""
+msgstr "URL)> "
 
 msgid "We are now using: "
 msgstr "We are now using: "
@@ -151,8 +151,79 @@ msgstr "Successfully installed the current stage: "
 msgid "Archived installed packages in: "
 msgstr "Archived installed packages in: "
 
-msgid "Installing dtk2 dependencies..."
-msgstr "Installing DTK2 dependencies..."
+msgid "DTK2 compatibility dependencies"
+msgstr "DTK2 compatibility dependencies"
+
+msgid "Installing module stage: "
+msgstr "Installing module stage: "
+
+#, python-brace-format
+msgid "Please choose the source for {version_name}."
+msgstr "Please choose the source for {version_name}."
+
+msgid ""
+"Warning: using the system-provided version instead of the GXDE-modified "
+"version may cause some GXDE behavior, such as blur effects, to differ from "
+"the intended experience."
+msgstr ""
+"Warning: using the system-provided version instead of the GXDE-modified "
+"version may cause some GXDE behavior, such as blur effects, to differ from "
+"the intended experience."
+
+msgid ""
+"Warning: installing the GXDE-modified version may change DTK behavior in "
+"other desktop sessions. GXDE does not guarantee that DTK applications will "
+"behave as expected outside the GXDE session."
+msgstr ""
+"Warning: installing the GXDE-modified version may change DTK behavior in "
+"other desktop sessions. GXDE does not guarantee that DTK applications will "
+"behave as expected outside the GXDE session."
+
+#, python-brace-format
+msgid "Build and install the GXDE-modified version of {version_name}?"
+msgstr "Build and install the GXDE-modified version of {version_name}?"
+
+msgid "Using the system-provided DTK5 packages."
+msgstr "Using the system-provided DTK5 packages."
+
+msgid "Using the system-provided DTK6 packages."
+msgstr "Using the system-provided DTK6 packages."
+
+msgid "GXDE infrastructure dependencies"
+msgstr "GXDE infrastructure dependencies"
+
+msgid "GXDE core"
+msgstr "GXDE core"
+
+msgid "Warning: failed to install optional component: "
+msgstr "Warning: failed to install optional component: "
+
+msgid "Successfully installed optional component: "
+msgstr "Successfully installed optional component: "
+
+msgid "Please choose the GXDE session type to install:"
+msgstr "Please choose the GXDE session type to install:"
+
+msgid "  1. X11 session (including compositor)"
+msgstr "  1. X11 session (including compositor)"
+
+msgid "  2. Wayland session (including compositor)"
+msgstr "  2. Wayland session (including compositor)"
+
+msgid "  3. Both X11 and Wayland sessions"
+msgstr "  3. Both X11 and Wayland sessions"
+
+msgid "GXDE X11 session and compositor"
+msgstr "GXDE X11 session and compositor"
+
+msgid "GXDE Wayland session and compositor"
+msgstr "GXDE Wayland session and compositor"
+
+msgid "Install APM (Amber Package Manager)?"
+msgstr "Install APM (Amber Package Manager)?"
+
+msgid "Skipping APM installation."
+msgstr "Skipping APM installation."
 
 msgid "GXDE Desktop Environment Installer"
 msgstr "GXDE Desktop Environment Installer"
@@ -186,3 +257,6 @@ msgstr "Still proceed with the installation?"
 
 msgid "You have chosen to exit the installation process."
 msgstr "You have chosen to exit the installation process."
+
+#~ msgid "Installing dtk2 dependencies..."
+#~ msgstr "Installing DTK2 dependencies..."

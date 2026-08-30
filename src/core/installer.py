@@ -29,7 +29,16 @@ from utils.get_input import (
 )
 from utils.git import git_clone
 from utils.package_manager import get_pm_adapter
-from definitions.modules import DTK2_MODULES, ModuleDefinition
+from definitions.modules import (
+  CORE_MODULES,
+  DTK2_MODULES,
+  DTK5_MODULES,
+  DTK6_MODULES,
+  INFRA_MODULES,
+  WAYLAND_SESSION_MODULES,
+  X11_SESSION_MODULES,
+  ModuleDefinition,
+)
 
 INSTALLATION_REMOTE_BASE = "https://gitee.com/GXDE-OS/"
 INSTALLATION_USE_SSH = False
@@ -46,7 +55,7 @@ def init_installer() -> None:
     print("")
     print(tr("Please choose from following repository sources:"))
     print(tr("  1. Gitee official"))
-    print(tr("  2. GiHub official"))
+    print(tr("  2. GitHub official"))
     print(tr("  3. Manually entering mirror source"))
 
     source_choice = get_int_with_bound_inclusive("", 3, 1)
@@ -157,7 +166,7 @@ def gen_artifact(module: ModuleDefinition) -> None:
   if os.waitstatus_to_exitcode(build_status) != 0:
     print(tr("Failed to build repository: ") + display_name)
     print(tr("Installation failed due to error occurred."))
-    exit(1)
+    sys.exit(1)
 
   print(tr("Successfully built repository: ") + display_name)
 
@@ -264,10 +273,151 @@ def install_current_stage(archive_name: str) -> None:
   print(tr("Archived installed packages in: ") + str(archive_dir))
 
 def install_dtk2() -> None:
-  print(tr("Installing dtk2 dependencies..."))
-  for module in DTK2_MODULES:
+  install_module_stage(
+    tr("DTK2 compatibility dependencies"),
+    "dtk2",
+    DTK2_MODULES,
+  )
+
+def install_module_stage(
+    display_name: str,
+    archive_name: str,
+    modules: list[ModuleDefinition],
+  ) -> None:
+  print(tr("Installing module stage: ") + display_name)
+  for module in modules:
     gen_artifact(module)
     print()
-  install_current_stage("dtk2")
+  install_current_stage(archive_name)
 
-__all__ = ["init_installer"]
+def should_install_gxde_dtk(version: int) -> bool:
+  version_name = f"DTK{version}"
+  print("")
+  print(tr("Please choose the source for {version_name}.").format(
+    version_name=version_name,
+  ))
+  print(tr("Warning: using the system-provided version instead of the GXDE-"
+    "modified version may cause some GXDE behavior, such as blur effects, "
+    "to differ from the intended experience."))
+  print(tr("Warning: installing the GXDE-modified version may change DTK "
+    "behavior in other desktop sessions. GXDE does not guarantee that DTK "
+    "applications will behave as expected outside the GXDE session."))
+  return get_yes_no_input(
+    tr("Build and install the GXDE-modified version of {version_name}?")
+    .format(version_name=version_name),
+  )
+
+def install_dtk5() -> None:
+  if should_install_gxde_dtk(5):
+    install_module_stage("DTK5", "dtk5", DTK5_MODULES)
+  else:
+    print(tr("Using the system-provided DTK5 packages."))
+
+def install_dtk6() -> None:
+  if should_install_gxde_dtk(6):
+    install_module_stage("DTK6", "dtk6", DTK6_MODULES)
+  else:
+    print(tr("Using the system-provided DTK6 packages."))
+
+def install_infra() -> None:
+  install_module_stage(
+    tr("GXDE infrastructure dependencies"),
+    "infra",
+    INFRA_MODULES,
+  )
+
+def install_core() -> None:
+  install_module_stage(tr("GXDE core"), "core", CORE_MODULES)
+
+def install_named_packages(
+    package_names: tuple[str, ...],
+    display_name: str,
+  ) -> None:
+  pm_adapter = get_pm_adapter()
+  if pm_adapter is None:
+    print(
+      tr("Warning: no supported package manager adapter is available."),
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  try:
+    install_pid = os.fork()
+  except OSError as error:
+    print(
+      tr("Warning: failed to create the package installation process: ")
+      + str(error),
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  if install_pid == 0:
+    try:
+      install_command = [*pm_adapter.install_command, *package_names]
+      os.execvp(install_command[0], install_command)
+    except OSError as error:
+      print(
+        tr("Warning: failed to start package installation: ") + str(error),
+        file=sys.stderr,
+        flush=True,
+      )
+      os._exit(1)
+
+  try:
+    _, install_status = os.waitpid(install_pid, 0)
+  except OSError as error:
+    print(
+      tr("Warning: failed while waiting for package installation: ")
+      + str(error),
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  if os.waitstatus_to_exitcode(install_status) != 0:
+    print(
+      tr("Warning: failed to install optional component: ") + display_name,
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  print(tr("Successfully installed optional component: ") + display_name)
+
+def install_session_components() -> None:
+  print("")
+  print(tr("Please choose the GXDE session type to install:"))
+  print(tr("  1. X11 session (including compositor)"))
+  print(tr("  2. Wayland session (including compositor)"))
+  print(tr("  3. Both X11 and Wayland sessions"))
+  session_choice = get_int_with_bound_inclusive("", 3, 1)
+
+  if session_choice in {1, 3}:
+    install_module_stage(
+      tr("GXDE X11 session and compositor"),
+      "x11-session",
+      X11_SESSION_MODULES,
+    )
+  if session_choice in {2, 3}:
+    install_module_stage(
+      tr("GXDE Wayland session and compositor"),
+      "wayland-session",
+      WAYLAND_SESSION_MODULES,
+    )
+
+  print("")
+  if get_yes_no_input(tr("Install APM (Amber Package Manager)?")):
+    install_named_packages(("apm",), "APM")
+  else:
+    print(tr("Skipping APM installation."))
+
+def install_desktop_environment() -> None:
+  install_dtk5()
+  install_dtk6()
+  install_dtk2()
+  install_infra()
+  install_core()
+  install_session_components()
+
+__all__ = [
+  "init_installer",
+  "install_desktop_environment",
+]

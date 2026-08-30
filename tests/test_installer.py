@@ -47,6 +47,200 @@ class InstallerTest(unittest.TestCase):
     self.assertEqual(len(installer.DTK2_MODULES), gen_artifact_mock.call_count)
     install_stage_mock.assert_called_once_with("dtk2")
 
+  def test_system_dtk6_choice_skips_gxde_module_builds(self) -> None:
+    output = StringIO()
+
+    with patch.object(
+        installer,
+        "get_yes_no_input",
+        return_value=False,
+      ), patch.object(installer, "install_module_stage") as stage_mock, \
+        redirect_stdout(output):
+      installer.install_dtk6()
+
+    stage_mock.assert_not_called()
+    self.assertIn(
+      installer.tr("Warning: using the system-provided version instead of "
+        "the GXDE-modified version may cause some GXDE behavior, such as "
+        "blur effects, to differ from the intended experience."),
+      output.getvalue(),
+    )
+    self.assertIn(
+      installer.tr("Warning: installing the GXDE-modified version may change "
+        "DTK behavior in other desktop sessions. GXDE does not guarantee "
+        "that DTK applications will behave as expected outside the GXDE "
+        "session."),
+      output.getvalue(),
+    )
+    self.assertIn(
+      installer.tr("Using the system-provided DTK6 packages."),
+      output.getvalue(),
+    )
+
+  def test_gxde_dtk5_choice_installs_the_dtk5_stage(self) -> None:
+    with patch.object(
+        installer,
+        "get_yes_no_input",
+        return_value=True,
+      ), patch.object(installer, "install_module_stage") as stage_mock:
+      installer.install_dtk5()
+
+    stage_mock.assert_called_once_with(
+      "DTK5",
+      "dtk5",
+      installer.DTK5_MODULES,
+    )
+
+  def test_session_selection_can_install_both_sessions_and_apm(self) -> None:
+    with patch.object(
+        installer,
+        "get_int_with_bound_inclusive",
+        return_value=3,
+      ), patch.object(
+        installer,
+        "get_yes_no_input",
+        return_value=True,
+      ), patch.object(
+        installer,
+        "install_module_stage",
+      ) as stage_mock, patch.object(
+        installer,
+        "install_named_packages",
+      ) as packages_mock:
+      installer.install_session_components()
+
+    self.assertEqual(2, stage_mock.call_count)
+    self.assertEqual("x11-session", stage_mock.call_args_list[0].args[1])
+    self.assertEqual("wayland-session", stage_mock.call_args_list[1].args[1])
+    packages_mock.assert_called_once_with(("apm",), "APM")
+
+  def test_optional_packages_use_the_detected_manager_adapter(self) -> None:
+    test_adapter = package_manager.PackageManagerAdapter(
+      detection_command="test-pm",
+      display_name="Test Package Manager",
+      build_command=("./test-build",),
+      artifact_patterns=("*.pkg",),
+      install_command=("doas", "test-pm", "install"),
+    )
+
+    with patch.object(
+        installer,
+        "get_pm_adapter",
+        return_value=test_adapter,
+      ), patch.object(installer.os, "fork", return_value=0), patch.object(
+        installer.os,
+        "execvp",
+        side_effect=SystemExit,
+      ) as execvp_mock, self.assertRaises(SystemExit):
+      installer.install_named_packages(("apm",), "APM")
+
+    execvp_mock.assert_called_once_with(
+      "doas",
+      ["doas", "test-pm", "install", "apm"],
+    )
+
+  def test_desktop_installation_uses_dependency_stage_order(self) -> None:
+    stage_order: list[str] = []
+
+    with patch.object(
+        installer,
+        "install_dtk5",
+        side_effect=lambda: stage_order.append("dtk5"),
+      ), patch.object(
+        installer,
+        "install_dtk6",
+        side_effect=lambda: stage_order.append("dtk6"),
+      ), patch.object(
+        installer,
+        "install_dtk2",
+        side_effect=lambda: stage_order.append("dtk2"),
+      ), patch.object(
+        installer,
+        "install_infra",
+        side_effect=lambda: stage_order.append("infra"),
+      ), patch.object(
+        installer,
+        "install_core",
+        side_effect=lambda: stage_order.append("core"),
+      ), patch.object(
+        installer,
+        "install_session_components",
+        side_effect=lambda: stage_order.append("sessions"),
+      ):
+      installer.install_desktop_environment()
+
+    self.assertEqual(
+      ["dtk5", "dtk6", "dtk2", "infra", "core", "sessions"],
+      stage_order,
+    )
+
+  def test_wayland_stage_contains_current_session_meta_dependencies(
+      self,
+    ) -> None:
+    wayland_repositories = {
+      module["repo_name"]
+      for module in installer.WAYLAND_SESSION_MODULES
+    }
+
+    self.assertTrue({
+      "gxde-wlcom",
+      "dde-grand-search",
+      "gxde-sni-server",
+      "gxde-top-panel-plugins",
+      "gxde-terminal",
+      "gxde-display-manager",
+      "gxde-wayland-session",
+    }.issubset(wayland_repositories))
+
+  def test_distribution_base_package_is_not_installed_as_desktop_core(
+      self,
+    ) -> None:
+    core_repositories = {
+      module["repo_name"]
+      for module in installer.CORE_MODULES
+    }
+
+    self.assertNotIn("gxde-desktop-base", core_repositories)
+
+  def test_core_stage_contains_runtime_feature_dependencies(self) -> None:
+    infra_repositories = {
+      module["repo_name"]
+      for module in installer.INFRA_MODULES
+    }
+    core_repositories = {
+      module["repo_name"]
+      for module in installer.CORE_MODULES
+    }
+
+    self.assertIn("gxde-k9", infra_repositories)
+    self.assertTrue({
+      "gxde-account-faces",
+      "gxde-app-installer",
+      "gxde-app-upgrader",
+      "gxde-app-uninstaller",
+      "gxde-icon-theme",
+      "gxde-globalmenu-service",
+      "gxde-requ",
+      "gxde-shell-compressor",
+      "gxde-sound-theme",
+      "gxde-time-screensaver",
+      "deepin-gtk-theme",
+      "deepin-menu",
+      "deepin-screensaver",
+    }.issubset(core_repositories))
+
+  def test_x11_stage_contains_kwin_runtime_dependencies(self) -> None:
+    x11_repositories = {
+      module["repo_name"]
+      for module in installer.X11_SESSION_MODULES
+    }
+
+    self.assertTrue({
+      "gxde-kglobalacceld",
+      "gxde-kwin",
+      "gxde-wm-shim",
+    }.issubset(x11_repositories))
+
   def test_current_stage_uses_adapter_pattern_and_install_command(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       artifacts_dir = Path(temporary_directory) / "artifacts"
@@ -315,6 +509,31 @@ class InstallerTest(unittest.TestCase):
       create_mode=True,
       must_empty=True,
     )
+
+  def test_selects_official_github_source_without_ssh_login(self) -> None:
+    output = StringIO()
+
+    with patch.object(
+        installer,
+        "get_dir",
+        return_value="/tmp/gxde-work",
+      ), patch.object(
+        installer,
+        "get_int_with_bound_inclusive",
+        return_value=2,
+      ), patch.object(
+        installer,
+        "get_yes_no_input",
+        side_effect=[False, True],
+      ), redirect_stdout(output):
+      installer.init_installer()
+
+    self.assertIn("https://github.com/GXDE-OS/", output.getvalue())
+    self.assertEqual(
+      "https://github.com/GXDE-OS/",
+      installer.INSTALLATION_REMOTE_BASE,
+    )
+    self.assertFalse(installer.INSTALLATION_USE_SSH)
 
   def test_reselects_source_after_rejecting_custom_source(self) -> None:
     output = StringIO()

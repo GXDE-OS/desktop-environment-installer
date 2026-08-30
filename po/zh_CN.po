@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 11:43-0500\n"
+"POT-Creation-Date: 2026-08-30 12:24-0500\n"
 "PO-Revision-Date: 2026-08-28 00:00+0800\n"
 "Last-Translator: GXDE Team\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -52,8 +52,8 @@ msgstr "请选择仓库的来源："
 msgid "  1. Gitee official"
 msgstr "  1. Gitee (码云) 上的GXDE-OS"
 
-msgid "  2. GiHub official"
-msgstr "  2. GiHub上的GXDE-OS"
+msgid "  2. GitHub official"
+msgstr "  2. GitHub上的GXDE-OS"
 
 msgid "  3. Manually entering mirror source"
 msgstr "  3. 手动配置镜像源"
@@ -77,7 +77,7 @@ msgid "Please enter the mirror source URL."
 msgstr "请输入镜像源的地址。"
 
 msgid "URL)> "
-msgstr ""
+msgstr "地址)> "
 
 msgid "We are now using: "
 msgstr "我们当前使用的源地址是: "
@@ -148,8 +148,77 @@ msgstr "当前阶段安装成功："
 msgid "Archived installed packages in: "
 msgstr "已安装的软件包已归档至："
 
-msgid "Installing dtk2 dependencies..."
-msgstr "正在安装 DTK2 依赖..."
+msgid "DTK2 compatibility dependencies"
+msgstr "DTK2兼容层依赖"
+
+msgid "Installing module stage: "
+msgstr "正在安装模块阶段："
+
+#, python-brace-format
+msgid "Please choose the source for {version_name}."
+msgstr "请选择{version_name}的来源。"
+
+msgid ""
+"Warning: using the system-provided version instead of the GXDE-modified "
+"version may cause some GXDE behavior, such as blur effects, to differ from "
+"the intended experience."
+msgstr ""
+"警告：若使用系统提供的版本而非GXDE修改版，GXDE的部分行为（例如模糊效果）可能"
+"与预期体验不一致。"
+
+msgid ""
+"Warning: installing the GXDE-modified version may change DTK behavior in "
+"other desktop sessions. GXDE does not guarantee that DTK applications will "
+"behave as expected outside the GXDE session."
+msgstr ""
+"警告：安装GXDE修改版可能会改变其他桌面会话中的DTK行为。GXDE不保证DTK应用在"
+"GXDE会话之外的行为符合预期。"
+
+#, python-brace-format
+msgid "Build and install the GXDE-modified version of {version_name}?"
+msgstr "要构建并安装GXDE修改版{version_name}吗？"
+
+msgid "Using the system-provided DTK5 packages."
+msgstr "将使用系统提供的DTK5软件包。"
+
+msgid "Using the system-provided DTK6 packages."
+msgstr "将使用系统提供的DTK6软件包。"
+
+msgid "GXDE infrastructure dependencies"
+msgstr "GXDE基础设施依赖"
+
+msgid "GXDE core"
+msgstr "GXDE核心组件"
+
+msgid "Warning: failed to install optional component: "
+msgstr "警告：可选组件安装失败："
+
+msgid "Successfully installed optional component: "
+msgstr "可选组件安装成功："
+
+msgid "Please choose the GXDE session type to install:"
+msgstr "请选择要安装的GXDE会话类型："
+
+msgid "  1. X11 session (including compositor)"
+msgstr "  1. X11会话（包含合成器）"
+
+msgid "  2. Wayland session (including compositor)"
+msgstr "  2. Wayland会话（包含合成器）"
+
+msgid "  3. Both X11 and Wayland sessions"
+msgstr "  3. 同时安装X11和Wayland会话"
+
+msgid "GXDE X11 session and compositor"
+msgstr "GXDE X11会话与合成器"
+
+msgid "GXDE Wayland session and compositor"
+msgstr "GXDE Wayland会话与合成器"
+
+msgid "Install APM (Amber Package Manager)?"
+msgstr "要安装APM（琥珀软件包管理器）吗？"
+
+msgid "Skipping APM installation."
+msgstr "跳过APM安装。"
 
 msgid "GXDE Desktop Environment Installer"
 msgstr "GXDE桌面环境安装器"
@@ -177,3 +246,6 @@ msgstr "还要继续安装吗？"
 
 msgid "You have chosen to exit the installation process."
 msgstr "您已经取消了安装流程。"
+
+#~ msgid "Installing dtk2 dependencies..."
+#~ msgstr "正在安装 DTK2 依赖..."
