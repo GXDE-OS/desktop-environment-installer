@@ -142,14 +142,20 @@ auto_install_deps() {
         return
     fi
     echo "Installing build dependencies from debian/control..."
-    sudo apt-get update
+    if ! sudo apt-get update; then
+        echo "Error: failed to update package indexes."
+        exit 1
+    fi
 
     echo ""
     echo ">>> Note: apt is running without -y. Carefully review the packages that"
     echo ">>>       will be installed or removed, especially GXDE system packages."
     echo ""
     # apt-get build-dep reads Build-Depends from this project's debian/control.
-    sudo apt-get build-dep "$PROJ_ROOT"
+    if ! sudo apt-get build-dep "$PROJ_ROOT"; then
+        echo "Error: failed to install build dependencies."
+        exit 1
+    fi
     echo "Build dependencies installed."
 }
 

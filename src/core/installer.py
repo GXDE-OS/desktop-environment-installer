@@ -31,7 +31,8 @@ from utils.git import git_clone
 from utils.package_manager import get_pm_adapter
 from definitions.modules import (
   CORE_MODULES,
-  DTK2_MODULES,
+  DTK2_ORIGINAL_MODULES,
+  DTK2_QT6_MODULES,
   DTK5_MODULES,
   DTK6_MODULES,
   INFRA_MODULES,
@@ -272,23 +273,42 @@ def install_current_stage(archive_name: str) -> None:
   print(tr("Successfully installed the current stage: ") + archive_name)
   print(tr("Archived installed packages in: ") + str(archive_dir))
 
-def install_dtk2() -> None:
+def install_dtk2_original() -> None:
   install_module_stage(
-    tr("DTK2 compatibility dependencies"),
-    "dtk2",
-    DTK2_MODULES,
+    tr("DTK2 original compatibility dependencies"),
+    "dtk2-original",
+    DTK2_ORIGINAL_MODULES,
+    install_incrementally=True,
+  )
+
+def install_dtk2_qt6() -> None:
+  install_module_stage(
+    tr("DTK2 Qt6 port compatibility dependencies"),
+    "dtk2-qt6",
+    DTK2_QT6_MODULES,
+    install_incrementally=True,
   )
 
 def install_module_stage(
     display_name: str,
     archive_name: str,
     modules: list[ModuleDefinition],
+    *,
+    install_incrementally: bool = False,
   ) -> None:
   print(tr("Installing module stage: ") + display_name)
   for module in modules:
     gen_artifact(module)
+    if install_incrementally:
+      # DTK repositories consume freshly built development packages from
+      # earlier repositories in the same stage. Install each repository's
+      # complete artifact set before building the next one, while keeping one
+      # archive directory for the whole stage.
+      install_current_stage(archive_name)
     print()
-  install_current_stage(archive_name)
+
+  if not install_incrementally:
+    install_current_stage(archive_name)
 
 def should_install_gxde_dtk(version: int) -> bool:
   version_name = f"DTK{version}"
@@ -309,13 +329,23 @@ def should_install_gxde_dtk(version: int) -> bool:
 
 def install_dtk5() -> None:
   if should_install_gxde_dtk(5):
-    install_module_stage("DTK5", "dtk5", DTK5_MODULES)
+    install_module_stage(
+      "DTK5",
+      "dtk5",
+      DTK5_MODULES,
+      install_incrementally=True,
+    )
   else:
     print(tr("Using the system-provided DTK5 packages."))
 
 def install_dtk6() -> None:
   if should_install_gxde_dtk(6):
-    install_module_stage("DTK6", "dtk6", DTK6_MODULES)
+    install_module_stage(
+      "DTK6",
+      "dtk6",
+      DTK6_MODULES,
+      install_incrementally=True,
+    )
   else:
     print(tr("Using the system-provided DTK6 packages."))
 
@@ -411,8 +441,12 @@ def install_session_components() -> None:
 
 def install_desktop_environment() -> None:
   install_dtk5()
+  # The original DTK2-Widget needs DTK5 Core and DTK Log, while GXDE's Qt5
+  # integration needs the resulting libdtkwidget2-dev package.
+  install_dtk2_original()
   install_dtk6()
-  install_dtk2()
+  # The Qt6 port consumes the DTK6 development packages.
+  install_dtk2_qt6()
   install_infra()
   install_core()
   install_session_components()

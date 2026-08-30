@@ -25,7 +25,28 @@ class ModuleDefinition(TypedDict):
   branch: str
 
 
-DTK2_MODULES: list[ModuleDefinition] = [
+DTK2_ORIGINAL_MODULES: list[ModuleDefinition] = [
+  {
+    # DTK2-Widget consumes the generated libgxframeworkdbus development
+    # package, so this infrastructure library has to be bootstrapped as part
+    # of the original DTK2 phase rather than built with the later infra stage.
+    "repo_name": "dde-qt-dbus-factory",
+    "display_name": "GXDE Qt D-Bus Factory (DTK2 prerequisite)",
+    "branch": "master",
+  },
+  {
+    "repo_name": "dtk2widget",
+    "display_name": "DTK2-Widget",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-qt5integration",
+    "display_name": "DTK2-Widget integration (Qt5)",
+    "branch": "master",
+  },
+]
+
+DTK2_QT6_MODULES: list[ModuleDefinition] = [
   {
     "repo_name": "dtk2widget-qt6",
     "display_name": "DTK2-Widget (Qt6 port)",
@@ -42,16 +63,20 @@ DTK5_MODULES: list[ModuleDefinition] = [
   {
     "repo_name": "dtk5common",
     "display_name": "DTK5 Common",
+    # dtk5common/master is still the 5.7 line, while the remaining DTK5
+    # repositories build the Qt 5 variant from the 6.7 source line.  Use the
+    # matching release so libdtkdata contains the configuration keys consumed
+    # by dtk5gui (including disableInWindowBlur).
+    "branch": "6.7.43",
+  },
+  {
+    "repo_name": "dtklog",
+    "display_name": "DTK Log",
     "branch": "master",
   },
   {
     "repo_name": "dtk5core",
     "display_name": "DTK5 Core",
-    "branch": "master",
-  },
-  {
-    "repo_name": "dtklog",
-    "display_name": "DTK Log",
     "branch": "master",
   },
   {
@@ -64,22 +89,17 @@ DTK5_MODULES: list[ModuleDefinition] = [
     "display_name": "DTK5 Widget",
     "branch": "master",
   },
-  {
-    "repo_name": "gxde-qt5integration",
-    "display_name": "GXDE Qt5 Integration",
-    "branch": "master",
-  },
 ]
 
 DTK6_MODULES: list[ModuleDefinition] = [
   {
-    "repo_name": "dtk6core",
-    "display_name": "DTK6 Core",
+    "repo_name": "dtk6log",
+    "display_name": "DTK6 Log",
     "branch": "master",
   },
   {
-    "repo_name": "dtk6log",
-    "display_name": "DTK6 Log",
+    "repo_name": "dtk6core",
+    "display_name": "DTK6 Core",
     "branch": "master",
   },
   {
@@ -131,11 +151,6 @@ INFRA_MODULES: list[ModuleDefinition] = [
   {
     "repo_name": "gxde-network-utils-qt6",
     "display_name": "GXDE Network Utils (Qt6 port)",
-    "branch": "master",
-  },
-  {
-    "repo_name": "dde-qt-dbus-factory",
-    "display_name": "GXDE Qt D-Bus Factory",
     "branch": "master",
   },
   {

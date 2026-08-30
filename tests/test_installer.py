@@ -13,7 +13,7 @@ from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
 import unittest
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
@@ -30,22 +30,111 @@ TEST_MODULE = {
 
 
 class InstallerTest(unittest.TestCase):
-  def test_install_dtk2_builds_module_definitions_then_installs_stage(
+  def test_install_original_dtk2_installs_each_module_incrementally(
       self,
     ) -> None:
-    with patch.object(installer, "gen_artifact") as gen_artifact_mock, \
-        patch.object(
-          installer,
-          "install_current_stage",
-        ) as install_stage_mock:
-      installer.install_dtk2()
+    operations: list[tuple[str, object]] = []
 
-    gen_artifact_mock.assert_has_calls([
-      call(module)
-      for module in installer.DTK2_MODULES
-    ])
-    self.assertEqual(len(installer.DTK2_MODULES), gen_artifact_mock.call_count)
-    install_stage_mock.assert_called_once_with("dtk2")
+    with patch.object(
+        installer,
+        "gen_artifact",
+        side_effect=lambda module: operations.append(("build", module)),
+      ), patch.object(
+        installer,
+        "install_current_stage",
+        side_effect=lambda archive: operations.append(("install", archive)),
+      ):
+      installer.install_dtk2_original()
+
+    self.assertEqual([
+      operation
+      for module in installer.DTK2_ORIGINAL_MODULES
+      for operation in (("build", module), ("install", "dtk2-original"))
+    ], operations)
+
+  def test_install_qt6_dtk2_installs_each_module_incrementally(self) -> None:
+    operations: list[tuple[str, object]] = []
+
+    with patch.object(
+        installer,
+        "gen_artifact",
+        side_effect=lambda module: operations.append(("build", module)),
+      ), patch.object(
+        installer,
+        "install_current_stage",
+        side_effect=lambda archive: operations.append(("install", archive)),
+      ):
+      installer.install_dtk2_qt6()
+
+    self.assertEqual([
+      operation
+      for module in installer.DTK2_QT6_MODULES
+      for operation in (("build", module), ("install", "dtk2-qt6"))
+    ], operations)
+
+  def test_dtk2_phases_contain_original_and_qt6_ports(self) -> None:
+    original_repositories = [
+      module["repo_name"]
+      for module in installer.DTK2_ORIGINAL_MODULES
+    ]
+    qt6_repositories = [
+      module["repo_name"]
+      for module in installer.DTK2_QT6_MODULES
+    ]
+
+    self.assertEqual([
+      "dde-qt-dbus-factory",
+      "dtk2widget",
+      "gxde-qt5integration",
+    ], original_repositories)
+    self.assertEqual([
+      "dtk2widget-qt6",
+      "gxde-qt6-integration",
+    ], qt6_repositories)
+
+  def test_dtk_modules_are_in_build_dependency_order(self) -> None:
+    dtk5_repositories = [
+      module["repo_name"]
+      for module in installer.DTK5_MODULES
+    ]
+    dtk6_repositories = [
+      module["repo_name"]
+      for module in installer.DTK6_MODULES
+    ]
+
+    self.assertLess(
+      dtk5_repositories.index("dtklog"),
+      dtk5_repositories.index("dtk5core"),
+    )
+    self.assertLess(
+      dtk5_repositories.index("dtk5core"),
+      dtk5_repositories.index("dtk5gui"),
+    )
+    self.assertLess(
+      dtk5_repositories.index("dtk5gui"),
+      dtk5_repositories.index("dtk5widget"),
+    )
+    self.assertLess(
+      dtk6_repositories.index("dtk6log"),
+      dtk6_repositories.index("dtk6core"),
+    )
+    self.assertLess(
+      dtk6_repositories.index("dtk6core"),
+      dtk6_repositories.index("dtk6gui"),
+    )
+    self.assertLess(
+      dtk6_repositories.index("dtk6gui"),
+      dtk6_repositories.index("dtk6widget"),
+    )
+
+  def test_dtk5_common_uses_the_matching_dtk_source_line(self) -> None:
+    dtk5_common = next(
+      module
+      for module in installer.DTK5_MODULES
+      if module["repo_name"] == "dtk5common"
+    )
+
+    self.assertEqual("6.7.43", dtk5_common["branch"])
 
   def test_system_dtk6_choice_skips_gxde_module_builds(self) -> None:
     output = StringIO()
@@ -89,6 +178,7 @@ class InstallerTest(unittest.TestCase):
       "DTK5",
       "dtk5",
       installer.DTK5_MODULES,
+      install_incrementally=True,
     )
 
   def test_session_selection_can_install_both_sessions_and_apm(self) -> None:
@@ -148,12 +238,16 @@ class InstallerTest(unittest.TestCase):
         side_effect=lambda: stage_order.append("dtk5"),
       ), patch.object(
         installer,
+        "install_dtk2_original",
+        side_effect=lambda: stage_order.append("dtk2-original"),
+      ), patch.object(
+        installer,
         "install_dtk6",
         side_effect=lambda: stage_order.append("dtk6"),
       ), patch.object(
         installer,
-        "install_dtk2",
-        side_effect=lambda: stage_order.append("dtk2"),
+        "install_dtk2_qt6",
+        side_effect=lambda: stage_order.append("dtk2-qt6"),
       ), patch.object(
         installer,
         "install_infra",
@@ -170,7 +264,15 @@ class InstallerTest(unittest.TestCase):
       installer.install_desktop_environment()
 
     self.assertEqual(
-      ["dtk5", "dtk6", "dtk2", "infra", "core", "sessions"],
+      [
+        "dtk5",
+        "dtk2-original",
+        "dtk6",
+        "dtk2-qt6",
+        "infra",
+        "core",
+        "sessions",
+      ],
       stage_order,
     )
 
@@ -305,6 +407,27 @@ class InstallerTest(unittest.TestCase):
       waitpid_mock.assert_called_once_with(4321, 0)
       self.assertFalse((artifacts_dir / "package.deb").exists())
       self.assertTrue((artifacts_dir / "DTK2" / "package.deb").is_file())
+
+  def test_incremental_installs_accumulate_in_one_stage_archive(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      artifacts_dir = Path(temporary_directory) / "artifacts"
+      artifacts_dir.mkdir()
+
+      with patch.object(installer, "WORKING_DIR", temporary_directory), \
+          patch.object(
+            installer,
+            "get_pm_adapter",
+            return_value=APT_ADAPTER,
+          ), patch.object(installer.os, "fork", return_value=4321), \
+          patch.object(installer.os, "waitpid", return_value=(4321, 0)):
+        (artifacts_dir / "dtk-common.deb").touch()
+        installer.install_current_stage("dtk5")
+        (artifacts_dir / "dtk-log.deb").touch()
+        installer.install_current_stage("dtk5")
+
+      archive_dir = artifacts_dir / "dtk5"
+      self.assertTrue((archive_dir / "dtk-common.deb").is_file())
+      self.assertTrue((archive_dir / "dtk-log.deb").is_file())
 
   def test_current_stage_rejects_archive_paths_outside_artifacts(self) -> None:
     output = StringIO()
