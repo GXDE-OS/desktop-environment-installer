@@ -47,16 +47,16 @@ msgid "None of supported package managers were detected, halted!"
 msgstr "未找到支持的包管理器，安装工具现已退出..."
 
 msgid "Failed to save installation resume state: "
-msgstr "保存安装续跑状态失败："
+msgstr "保存安装中继状态失败："
 
 msgid "Failed to load installation resume state: "
-msgstr "加载安装续跑状态失败："
+msgstr "加载安装中继状态失败："
 
 msgid "The installation resume state is invalid."
-msgstr "安装续跑状态无效。"
+msgstr "安装中继状态无效。"
 
 msgid "Legacy resume state created; restarting from module: "
-msgstr "已创建旧工作目录的续跑状态，将从此模块重新开始："
+msgstr "已创建旧工作目录的中继状态，将从此模块重新开始："
 
 msgid "No previous module checkout was found; restarting from the beginning."
 msgstr "未找到之前检出的模块，将从头开始。"
@@ -107,10 +107,10 @@ msgid "Please enter the previous working directory."
 msgstr "请输入上次安装使用的工作目录。"
 
 msgid "Loaded installation resume state from: "
-msgstr "已从此处加载安装续跑状态："
+msgstr "已从此处加载安装中继状态："
 
 msgid "No resume state was found; reconstructing the previous run."
-msgstr "未找到续跑状态，正在根据旧工作目录重建上次运行进度。"
+msgstr "未找到中继状态，正在根据旧工作目录重建上次运行进度。"
 
 msgid "Please enter the working directory."
 msgstr "请输入工作目录。"
@@ -119,7 +119,7 @@ msgid "Warning: no supported package manager adapter is available."
 msgstr "警告：没有可用的受支持包管理器适配器。"
 
 msgid "Resume: reusing existing repository checkout: "
-msgstr "续跑：复用现有仓库检出："
+msgstr "中继：复用现有仓库检出："
 
 msgid "Failed to clone repository: "
 msgstr "克隆仓库失败："
@@ -185,20 +185,20 @@ msgid "Installing module stage: "
 msgstr "正在安装模块阶段："
 
 msgid "Resume: package artifacts are missing; rebuilding repository: "
-msgstr "续跑：软件包产物已不在根产物目录，重新构建仓库："
+msgstr "中继：软件包产物已不在根产物目录，重新构建仓库："
 
 msgid "Resume: skipping completed repository build: "
-msgstr "续跑：跳过已完成的仓库构建："
+msgstr "中继：跳过已完成的仓库构建："
 
 msgid "Resume: skipping completed repository installation: "
-msgstr "续跑：跳过已完成的仓库安装："
+msgstr "中继：跳过已完成的仓库安装："
 
 msgid "Resume: skipping completed module stage: "
-msgstr "续跑：跳过已完成的模块阶段："
+msgstr "中继：跳过已完成的模块阶段："
 
 #, python-brace-format
 msgid "Resume: using the saved source choice for {version_name}."
-msgstr "续跑：使用已保存的{version_name}来源选择。"
+msgstr "中继：使用已保存的{version_name}来源选择。"
 
 #, python-brace-format
 msgid "Please choose the source for {version_name}."
@@ -243,7 +243,7 @@ msgid "Successfully installed optional component: "
 msgstr "可选组件安装成功："
 
 msgid "Resume: using the saved GXDE session choice."
-msgstr "续跑：使用已保存的GXDE会话选择。"
+msgstr "中继：使用已保存的GXDE会话选择。"
 
 msgid "Please choose the GXDE session type to install:"
 msgstr "请选择要安装的GXDE会话类型："
@@ -264,13 +264,13 @@ msgid "GXDE Wayland session and compositor"
 msgstr "GXDE Wayland会话与合成器"
 
 msgid "Resume: using the saved APM choice."
-msgstr "续跑：使用已保存的APM选择。"
+msgstr "中继：使用已保存的APM选择。"
 
 msgid "Install APM (Amber Package Manager)?"
 msgstr "要安装APM（琥珀软件包管理器）吗？"
 
 msgid "Resume: skipping completed optional component: APM"
-msgstr "续跑：跳过已完成的可选组件：APM"
+msgstr "中继：跳过已完成的可选组件：APM"
 
 msgid "Skipping APM installation."
 msgstr "跳过APM安装。"
@@ -280,7 +280,7 @@ msgid ""
 msgstr "此工作目录记录的安装已经完成。"
 
 msgid "Installation completed; resume state has been saved."
-msgstr "安装完成，续跑状态已保存。"
+msgstr "安装完成，中继状态已保存。"
 
 msgid "Build and install the GXDE desktop environment."
 msgstr "构建并安装GXDE桌面环境。"
