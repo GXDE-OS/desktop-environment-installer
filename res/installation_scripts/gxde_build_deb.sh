@@ -356,6 +356,19 @@ prefetch_subprojects() {
     fi
 }
 
+# Keep legacy cgo bindings buildable with toolchains whose default language
+# mode is C23.  Older GIR-generated sources use declarations such as
+# "extern void callback();".  Those declarations mean unspecified arguments
+# through C17, but mean no arguments in C23 and therefore conflict with the
+# prototypes emitted by cgo.  CGO_CFLAGS is ignored by non-cgo builds, so this
+# compatibility setting is safe at the common APT package-build entry point.
+configure_cgo_compatibility() {
+    if [[ " ${CGO_CFLAGS:-} " != *" -std=gnu17 "* ]]; then
+        export CGO_CFLAGS="${CGO_CFLAGS:+${CGO_CFLAGS} }-std=gnu17"
+    fi
+    echo "CGO compatibility: using GNU C17 for legacy generated bindings."
+}
+
 # Remove build metadata only. Package artifacts are intentionally preserved.
 exec_clean() {
     echo "Removing buildinfo and changes files..."
@@ -378,6 +391,7 @@ exec_build() {
 
     cd "$PROJ_ROOT" || exit 1
     prefetch_subprojects
+    configure_cgo_compatibility
     mkdir -p "$ARTIFACTS_DIR"
     build_marker="$(mktemp "$PROJ_ROOT/../.${PKG_NAME}.build.XXXXXX")" || exit 1
 

@@ -65,6 +65,23 @@ class BuildScriptTest(unittest.TestCase):
 
     self.assertIn("qt6-wayland-dev-tools", control)
 
+  def test_builds_legacy_cgo_bindings_as_gnu17(self) -> None:
+    result = subprocess.run(
+      [
+        "bash",
+        "-c",
+        'source "$1"; CGO_CFLAGS="-O2 -std=gnu23"; '
+        "configure_cgo_compatibility; printf '%s' \"$CGO_CFLAGS\"",
+        "build-script-test",
+        str(BUILD_SCRIPT),
+      ],
+      check=True,
+      capture_output=True,
+      text=True,
+    )
+
+    self.assertTrue(result.stdout.endswith("-O2 -std=gnu23 -std=gnu17"))
+
   def test_installs_qt_6_10_xcb_private_headers(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)
