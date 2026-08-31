@@ -37,7 +37,7 @@ class BuildScriptTest(unittest.TestCase):
         encoding="utf-8",
       )
 
-      subprocess.run(
+      result = subprocess.run(
         [
           "bash",
           "-c",
@@ -105,7 +105,7 @@ class BuildScriptTest(unittest.TestCase):
         check=True,
       )
 
-      subprocess.run(
+      result = subprocess.run(
         [
           "bash",
           "-c",
@@ -128,6 +128,61 @@ class BuildScriptTest(unittest.TestCase):
       self.assertIn(
         "Uploaders: shenmo <shenmo@spark-app.store>\n",
         updated_control,
+      )
+
+  def test_imports_qt_core_private_for_qt6_dbus_framework(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      shutil.copytree(BUNDLED_PATCHES, repository / "patches")
+      tool_directory = repository / "tools/qdbusxml2cpp"
+      tool_directory.mkdir(parents=True)
+      cmake = tool_directory / "CMakeLists.txt"
+      cmake.write_text(
+        "cmake_minimum_required(VERSION 3.16)\n"
+        "project(gxde-qdbusxml2cpp LANGUAGES CXX)\n\n"
+        "# Build gxde-qdbusxml2cpp with Qt6 (host tool for code generation)\n"
+        "# NOTE: Not currently integrated into the main build due to\n"
+        "# chicken-and-egg problem (tool must be built before codegen,\n"
+        "# but execute_process runs at configure time).\n"
+        "# To use: build manually with `cmake --build . --target "
+        "gxde-qdbusxml2cpp`,\n"
+        "# then re-run cmake to generate headers with the fix tool.\n\n"
+        "find_package(Qt6 REQUIRED COMPONENTS Core DBus)\n\n"
+        "add_executable(gxde-qdbusxml2cpp\n"
+        "    qdbusxml2cpp.cpp\n"
+        ")\n",
+        encoding="utf-8",
+      )
+      subprocess.run(
+        ["git", "init", "--quiet"],
+        cwd=repository,
+        check=True,
+      )
+
+      result = subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          'PKG_NAME="libdframeworkdbus-qt6"; '
+          "apply_source_compatibility",
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+      )
+      self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+      self.assertIn(
+        "find_package(Qt6CorePrivate REQUIRED)",
+        cmake.read_text(encoding="utf-8"),
+      )
+      self.assertIn(
+        "find_package(Qt6DBusPrivate REQUIRED)",
+        cmake.read_text(encoding="utf-8"),
       )
 
   def test_installs_qt_6_10_xcb_private_headers(self) -> None:

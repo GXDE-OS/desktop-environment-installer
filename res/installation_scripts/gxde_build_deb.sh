@@ -179,6 +179,20 @@ apply_source_compatibility() {
                     "$PROJ_ROOT/patches/gxde-desktop-base-maintainers.patch"
             fi
             ;;
+        libdframeworkdbus-qt6)
+            if grep -Fq \
+                'find_package(Qt6CorePrivate REQUIRED)' \
+                "$PROJ_ROOT/tools/qdbusxml2cpp/CMakeLists.txt" \
+                && grep -Fq \
+                'find_package(Qt6DBusPrivate REQUIRED)' \
+                "$PROJ_ROOT/tools/qdbusxml2cpp/CMakeLists.txt"; then
+                echo "Source compatibility: Qt6 D-Bus Framework tool already imports private Qt targets."
+            else
+                apply_bundled_source_patch \
+                    "Qt6 D-Bus Framework private targets" \
+                    "$PROJ_ROOT/patches/dframework-dbus-qt6-core-private.patch"
+            fi
+            ;;
         dde-qt6platform-plugins)
             local bundled_xcb_headers="$PROJ_ROOT/compat/qt6-xcb-private-headers/6.10.2"
             local source_xcb_headers="$PROJ_ROOT/xcb/libqt6xcbqpa-dev/6.10.2"
