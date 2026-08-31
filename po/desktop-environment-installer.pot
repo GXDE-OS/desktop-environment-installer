@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 07:06-0500\n"
+"POT-Creation-Date: 2026-08-31 08:11-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -185,6 +185,9 @@ msgid "DTK2 Qt6 port compatibility dependencies"
 msgstr ""
 
 msgid "Installing module stage: "
+msgstr ""
+
+msgid "Resume: package artifacts are missing; rebuilding repository: "
 msgstr ""
 
 msgid "Resume: skipping completed repository build: "

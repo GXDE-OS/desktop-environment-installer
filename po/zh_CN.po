@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 07:06-0500\n"
+"POT-Creation-Date: 2026-08-31 08:11-0500\n"
 "PO-Revision-Date: 2026-08-28 00:00+0800\n"
 "Last-Translator: GXDE Team\n"
 "Language-Team: Chinese (Simplified)\n"
@@ -183,6 +183,9 @@ msgstr "DTK2 Qt6移植版兼容层依赖"
 
 msgid "Installing module stage: "
 msgstr "正在安装模块阶段："
+
+msgid "Resume: package artifacts are missing; rebuilding repository: "
+msgstr "续跑：软件包产物已不在根产物目录，重新构建仓库："
 
 msgid "Resume: skipping completed repository build: "
 msgstr "续跑：跳过已完成的仓库构建："

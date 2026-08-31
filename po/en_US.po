@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 07:06-0500\n"
+"POT-Creation-Date: 2026-08-31 08:11-0500\n"
 "PO-Revision-Date: 2026-08-28 23:12+0800\n"
 "Last-Translator: GXDE Team\n"
 "Language-Team: English (United States)\n"
@@ -187,6 +187,9 @@ msgstr "DTK2 Qt6 port compatibility dependencies"
 msgid "Installing module stage: "
 msgstr "Installing module stage: "
 
+msgid "Resume: package artifacts are missing; rebuilding repository: "
+msgstr "Resume: package artifacts are missing; rebuilding repository: "
+
 msgid "Resume: skipping completed repository build: "
 msgstr "Resume: skipping completed repository build: "
 
@@ -289,7 +292,8 @@ msgid "Build and install the GXDE desktop environment."
 msgstr "Build and install the GXDE desktop environment."
 
 msgid "Continue from the last incomplete step in a previous working directory."
-msgstr "Continue from the last incomplete step in a previous working directory."
+msgstr ""
+"Continue from the last incomplete step in a previous working directory."
 
 msgid "GXDE Desktop Environment Installer"
 msgstr "GXDE Desktop Environment Installer"

@@ -504,6 +504,18 @@ def install_dtk2_qt6() -> None:
     install_incrementally=True,
   )
 
+def _has_unarchived_package_artifacts() -> bool:
+  pm_adapter = get_pm_adapter()
+  if pm_adapter is None:
+    return False
+
+  artifacts_dir = Path(WORKING_DIR) / "artifacts"
+  return any(
+    package.is_file()
+    for pattern in pm_adapter.artifact_patterns
+    for package in artifacts_dir.glob(pattern)
+  )
+
 def install_module_stage(
     display_name: str,
     archive_name: str,
@@ -515,7 +527,25 @@ def install_module_stage(
   for module in modules:
     repo_name = module["repo_name"]
     build_step = _build_step(archive_name, repo_name)
-    if _is_step_completed(build_step):
+    install_step = _module_install_step(archive_name, repo_name)
+    build_completed = _is_step_completed(build_step)
+    install_completed = (
+      install_incrementally and _is_step_completed(install_step)
+    )
+    rebuild_missing_artifacts = (
+      build_completed
+      and install_incrementally
+      and not install_completed
+      and not _has_unarchived_package_artifacts()
+    )
+
+    if rebuild_missing_artifacts:
+      print(
+        tr("Resume: package artifacts are missing; rebuilding repository: ")
+        + module["display_name"]
+      )
+      gen_artifact(module)
+    elif build_completed:
       print(
         tr("Resume: skipping completed repository build: ")
         + module["display_name"]
@@ -529,8 +559,7 @@ def install_module_stage(
       # earlier repositories in the same stage. Install each repository's
       # complete artifact set before building the next one, while keeping one
       # archive directory for the whole stage.
-      install_step = _module_install_step(archive_name, repo_name)
-      if _is_step_completed(install_step):
+      if install_completed:
         print(
           tr("Resume: skipping completed repository installation: ")
           + module["display_name"]

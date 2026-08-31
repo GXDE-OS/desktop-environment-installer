@@ -139,6 +139,14 @@ class InstallerTest(unittest.TestCase):
       dtk6_repositories.index("dtk6gui"),
       dtk6_repositories.index("dtk6widget"),
     )
+    self.assertLess(
+      dtk6_repositories.index("dtk6declarative"),
+      dtk6_repositories.index("dde-qt6platform-plugins"),
+    )
+    self.assertLess(
+      dtk6_repositories.index("dde-qt6platform-plugins"),
+      dtk6_repositories.index("qt6integration"),
+    )
 
   def test_dtk5_common_uses_the_matching_dtk_source_line(self) -> None:
     dtk5_common = next(

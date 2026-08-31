@@ -125,6 +125,13 @@ DTK6_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    # dde-qt6integration has a hard runtime dependency on the
+    # dde-qt6xcb-plugin binary produced by this repository.
+    "repo_name": "dde-qt6platform-plugins",
+    "display_name": "Deepin Qt6 XCB Platform Plugin (GXDE modified)",
+    "branch": "master",
+  },
+  {
     "repo_name": "qt6integration",
     "display_name": "Deepin Qt6 Integration (GXDE modified)",
     "branch": "master",

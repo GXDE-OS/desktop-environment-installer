@@ -115,6 +115,47 @@ class ResumeTest(unittest.TestCase):
       installer._is_step_completed("install:test-stage:failed"),
     )
 
+  def test_resume_rebuilds_when_uninstalled_artifacts_were_archived(self) -> None:
+    module = {
+      "repo_name": "failed",
+      "display_name": "Failed",
+      "branch": "main",
+    }
+    installer.INSTALLATION_STATE = {
+      "version": installer.STATE_VERSION,
+      "repository_remote_base": "https://github.com/GXDE-OS/",
+      "installation_use_ssh": False,
+      "choices": {},
+      "completed_steps": ["build:test-stage:failed"],
+    }
+    operations: list[str] = []
+
+    with TemporaryDirectory() as temporary_directory, patch.object(
+        installer,
+        "WORKING_DIR",
+        temporary_directory,
+      ), patch.object(
+        installer,
+        "get_pm_adapter",
+        return_value=APT_ADAPTER,
+      ), patch.object(
+        installer,
+        "gen_artifact",
+        side_effect=lambda unused_module: operations.append("build"),
+      ), patch.object(
+        installer,
+        "install_current_stage",
+        side_effect=lambda unused_archive: operations.append("install"),
+      ), patch.object(installer, "_save_installation_state"):
+      installer.install_module_stage(
+        "Test stage",
+        "test-stage",
+        [module],
+        install_incrementally=True,
+      )
+
+    self.assertEqual(["build", "install"], operations)
+
   def test_resume_reuses_failed_module_checkout(self) -> None:
     module = {
       "repo_name": "failed-module",
