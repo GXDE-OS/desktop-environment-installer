@@ -24,7 +24,8 @@ from utils import git as git_utils
 
 class GitCloneTest(unittest.TestCase):
   def test_returns_true_when_clone_succeeds(self) -> None:
-    with patch.object(git_utils.Repo, "clone_from") as clone_from:
+    with patch.object(git_utils.Repo, "clone_from") as clone_from, \
+        patch.object(git_utils.os, "chdir") as chdir:
       result = git_utils.git_clone(
         "https://example.com/repository.git",
         "/tmp/repository",
@@ -37,6 +38,30 @@ class GitCloneTest(unittest.TestCase):
       to_path="/tmp/repository",
       branch="develop",
     )
+    self.assertEqual(Path("/tmp"), chdir.call_args_list[0].args[0])
+
+  def test_recovers_when_the_original_working_directory_was_deleted(
+      self,
+    ) -> None:
+    with patch.object(
+        git_utils.Path,
+        "cwd",
+        side_effect=OSError("working directory was deleted"),
+      ), patch.object(
+        git_utils.os,
+        "chdir",
+      ) as chdir, patch.object(
+        git_utils.Repo,
+        "clone_from",
+      ) as clone_from:
+      result = git_utils.git_clone(
+        "https://example.com/repository.git",
+        "/tmp/gxde-work/repository",
+      )
+
+    self.assertTrue(result)
+    chdir.assert_called_once_with(Path("/tmp/gxde-work"))
+    clone_from.assert_called_once()
 
   def test_returns_false_for_empty_repository_or_destination(self) -> None:
     with patch.object(git_utils.Repo, "clone_from") as clone_from:

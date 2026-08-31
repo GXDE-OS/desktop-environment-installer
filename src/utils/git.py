@@ -16,6 +16,9 @@
 # GXDE Desktop Environment Installer.If not,
 # see <https://www.gnu.org/licenses/>.
 
+import os
+from pathlib import Path
+
 from git.exc import GitError
 from git.repo import Repo
 
@@ -25,10 +28,26 @@ def git_clone(repo: str, dest: str, branch: str = "master") -> bool:
   if repo == "" or dest == "":
     return False
 
+  original_directory: Path | None = None
   try:
+    try:
+      original_directory = Path.cwd()
+    except OSError:
+      # The installer may have been updated by replacing the directory from
+      # which an older process was launched. Recover by entering the stable
+      # parent of the absolute clone destination before Git starts.
+      pass
+
+    os.chdir(Path(dest).expanduser().parent)
     Repo.clone_from(repo, to_path=dest, branch=branch)
   except (GitError, OSError) as error:
     print(tr("Git clone failed: ") + str(error))
     return False
+  finally:
+    if original_directory is not None:
+      try:
+        os.chdir(original_directory)
+      except OSError:
+        pass
 
   return True
