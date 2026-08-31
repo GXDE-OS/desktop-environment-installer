@@ -183,11 +183,21 @@ apply_source_compatibility() {
                 'find_package(Qt6 COMPONENTS CorePrivate GuiPrivate WidgetsPrivate REQUIRED)' \
                 "$PROJ_ROOT/CMakeLists.txt"; then
                 echo "Source compatibility: Qt6 Integration already imports Qt 6.10 private targets."
-                return
+            else
+                apply_bundled_source_patch \
+                    "Qt6 Integration Qt 6.10 private targets" \
+                    "$PROJ_ROOT/patches/qt6integration-qt-6.10-private-targets.patch"
             fi
-            apply_bundled_source_patch \
-                "Qt6 Integration Qt 6.10 private targets" \
-                "$PROJ_ROOT/patches/qt6integration-qt-6.10-private-targets.patch"
+
+            if grep -q \
+                'qgenericunixtheme_p.h' \
+                "$PROJ_ROOT/platformthemeplugin/qdeepintheme.h"; then
+                echo "Source compatibility: Qt6 Integration already supports the Qt 6.10 generic Unix theme header."
+            else
+                apply_bundled_source_patch \
+                    "Qt6 Integration Qt 6.10 generic Unix theme header" \
+                    "$PROJ_ROOT/patches/qt6integration-qt-6.10-generic-theme-header.patch"
+            fi
             ;;
     esac
 }

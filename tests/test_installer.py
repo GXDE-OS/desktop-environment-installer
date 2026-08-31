@@ -544,7 +544,8 @@ class InstallerTest(unittest.TestCase):
       for patch_name in (
         "dtk6widget-qt-6.10.patch",
         "qt6integration-qt-6.10-private-targets.patch",
-      ):
+        "qt6integration-qt-6.10-generic-theme-header.patch",
+    ):
         copied_patch = repo_dest / "patches" / patch_name
         self.assertTrue(copied_patch.is_file())
         self.assertEqual(

@@ -1,0 +1,16 @@
+diff --git a/platformthemeplugin/qdeepintheme.h b/platformthemeplugin/qdeepintheme.h
+index 9c6fcc4..34b6553 100644
+--- a/platformthemeplugin/qdeepintheme.h
++++ b/platformthemeplugin/qdeepintheme.h
+@@ -7,7 +7,11 @@
+ 
+ #include <QMimeDatabase>
+ 
++#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
++#include <private/qgenericunixtheme_p.h>
++#else
+ #include <private/qgenericunixthemes_p.h>
++#endif
+ #include <qpa/qplatformwindow.h>
+ #include <qpa/qplatformnativeinterface.h>
+ 
