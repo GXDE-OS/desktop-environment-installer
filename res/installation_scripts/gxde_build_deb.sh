@@ -183,6 +183,20 @@ apply_source_compatibility() {
                 fi
             fi
             ;;
+        dtk2widget6)
+            if grep -q \
+                'QString::number(static_cast<int>(modifier))' \
+                "$PROJ_ROOT/src/widgets/dsettingswidgetfactory.cpp" \
+                && grep -q \
+                'QString::number(static_cast<int>(key))' \
+                "$PROJ_ROOT/src/widgets/dsettingswidgetfactory.cpp"; then
+                echo "Source compatibility: DTK2 Widget Qt6 already formats shortcut enums explicitly."
+            else
+                apply_bundled_source_patch \
+                    "DTK2 Widget Qt6 Qt 6.10 enum string formatting" \
+                    "$PROJ_ROOT/patches/dtk2widget6-qt-6.10-enum-string-format.patch"
+            fi
+            ;;
         dtk6widget)
             if grep -q \
                 'D_DECLARE_PRIVATE_MEMBER(QDragManager_m_platformDrag_tag' \

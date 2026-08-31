@@ -1,0 +1,14 @@
+diff --git a/src/widgets/dsettingswidgetfactory.cpp b/src/widgets/dsettingswidgetfactory.cpp
+index f58ba34..392138d 100644
+--- a/src/widgets/dsettingswidgetfactory.cpp
++++ b/src/widgets/dsettingswidgetfactory.cpp
+@@ -162,7 +162,8 @@ QWidget *DSettingsWidgetFactory::createShortcutEditHandle(QObject *obj)
+         option->connect(rightWidget, &ShortcutEdit::shortcutChanged,
+         option, [ = ](Qt::KeyboardModifiers modifier, Qt::Key key) {
+             QStringList keyseqs;
+-            keyseqs << QString("%1").arg(modifier) << QString("%1").arg(key);
++            keyseqs << QString::number(static_cast<int>(modifier))
++                    << QString::number(static_cast<int>(key));
+             option->setValue(keyseqs);
+         });
+         break;

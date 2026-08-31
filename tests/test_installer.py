@@ -550,6 +550,7 @@ class InstallerTest(unittest.TestCase):
         copied_script.read_bytes(),
       )
       for patch_name in (
+        "dtk2widget6-qt-6.10-enum-string-format.patch",
         "dtk6widget-qt-6.10.patch",
         "qt6integration-qt-6.10-private-targets.patch",
         "qt6integration-qt-6.10-generic-theme-header.patch",
