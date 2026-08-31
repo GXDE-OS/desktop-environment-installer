@@ -1,0 +1,24 @@
+diff --git a/platformthemeplugin/qdeepinfiledialoghelper.cpp b/platformthemeplugin/qdeepinfiledialoghelper.cpp
+index be51637..ec50c0c 100644
+--- a/platformthemeplugin/qdeepinfiledialoghelper.cpp
++++ b/platformthemeplugin/qdeepinfiledialoghelper.cpp
+@@ -26,6 +26,7 @@
+ #include <private/qguiapplication_p.h>
+ 
+ #include <X11/Xlib.h>
++#include <unistd.h>
+ 
+ #include <DPlatformHandle>
+ DGUI_USE_NAMESPACE
+diff --git a/platformthemeplugin/qdeepintheme.cpp b/platformthemeplugin/qdeepintheme.cpp
+index b386250..4440e61 100644
+--- a/platformthemeplugin/qdeepintheme.cpp
++++ b/platformthemeplugin/qdeepintheme.cpp
+@@ -23,6 +23,7 @@
+ #undef private
+ #include <private/qwindow_p.h>
+ #include <private/qguiapplication_p.h>
++#include <private/qfactoryloader_p.h>
+ #include <qpa/qwindowsysteminterface_p.h>
+ #include <qpa/qplatformscreen.h>
+ #include <qpa/qplatformcursor.h>

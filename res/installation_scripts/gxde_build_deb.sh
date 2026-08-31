@@ -198,6 +198,29 @@ apply_source_compatibility() {
                     "Qt6 Integration Qt 6.10 generic Unix theme header" \
                     "$PROJ_ROOT/patches/qt6integration-qt-6.10-generic-theme-header.patch"
             fi
+
+            if grep -q \
+                'private/qfactoryloader_p.h' \
+                "$PROJ_ROOT/platformthemeplugin/qdeepintheme.cpp" \
+                && grep -q \
+                '^#include <unistd.h>' \
+                "$PROJ_ROOT/platformthemeplugin/qdeepinfiledialoghelper.cpp"; then
+                echo "Source compatibility: Qt6 Integration already has the required explicit includes."
+            else
+                apply_bundled_source_patch \
+                    "Qt6 Integration explicit private API includes" \
+                    "$PROJ_ROOT/patches/qt6integration-missing-private-includes.patch"
+            fi
+
+            if grep -q \
+                'QHighDpi::fromNativeWindowGeometry' \
+                "$PROJ_ROOT/platformthemeplugin/qdeepintheme.cpp"; then
+                echo "Source compatibility: Qt6 Integration already supports the Qt 6.9.2 geometry event API."
+            else
+                apply_bundled_source_patch \
+                    "Qt6 Integration Qt 6.9.2 geometry event API" \
+                    "$PROJ_ROOT/patches/qt6integration-qt-6.9-geometry-change.patch"
+            fi
             ;;
     esac
 }
