@@ -30,6 +30,10 @@ TEST_MODULE = {
 
 
 class InstallerTest(unittest.TestCase):
+  def setUp(self) -> None:
+    installer.RESUME_MODE = False
+    installer.INSTALLATION_STATE = None
+
   def test_install_original_dtk2_installs_each_module_incrementally(
       self,
     ) -> None:
@@ -638,6 +642,7 @@ class InstallerTest(unittest.TestCase):
         "get_dir",
         return_value="/tmp/gxde-work",
       ) as get_dir_mock, \
+        patch.object(installer, "_save_installation_state"), \
         patch.object(installer, "get_int_with_bound_inclusive", return_value=1), \
         patch.object(installer, "get_yes_no_input", side_effect=[True, True]), \
         redirect_stdout(output):
@@ -665,6 +670,9 @@ class InstallerTest(unittest.TestCase):
         return_value="/tmp/gxde-work",
       ), patch.object(
         installer,
+        "_save_installation_state",
+      ), patch.object(
+        installer,
         "get_int_with_bound_inclusive",
         return_value=2,
       ), patch.object(
@@ -688,6 +696,9 @@ class InstallerTest(unittest.TestCase):
         installer,
         "get_dir",
         return_value="/tmp/gxde-work",
+      ), patch.object(
+        installer,
+        "_save_installation_state",
       ), patch.object(
         installer,
         "get_int_with_bound_inclusive",

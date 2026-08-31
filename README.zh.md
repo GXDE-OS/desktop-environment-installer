@@ -23,3 +23,13 @@ make
 ```bash
 ./dist/gxde-desktop-environment-installer
 ```
+
+如果安装因错误而停止，可使用以下选项并选择上次的同一工作目录，从最后一个未完成的
+模块继续：
+
+```bash
+./dist/gxde-desktop-environment-installer --resume
+```
+
+安装器会在每次构建和安装成功后保存进度。对于尚无续跑状态文件的旧工作目录，也会根
+据已有的仓库目录重建进度。

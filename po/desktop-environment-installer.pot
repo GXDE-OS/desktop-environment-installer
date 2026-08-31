@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 17:30-0500\n"
+"POT-Creation-Date: 2026-08-31 07:06-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -51,6 +51,21 @@ msgstr ""
 msgid "None of supported package managers were detected, halted!"
 msgstr ""
 
+msgid "Failed to save installation resume state: "
+msgstr ""
+
+msgid "Failed to load installation resume state: "
+msgstr ""
+
+msgid "The installation resume state is invalid."
+msgstr ""
+
+msgid "Legacy resume state created; restarting from module: "
+msgstr ""
+
+msgid "No previous module checkout was found; restarting from the beginning."
+msgstr ""
+
 msgid "Please choose from following repository sources:"
 msgstr ""
 
@@ -91,10 +106,22 @@ msgstr ""
 msgid "Is that correct?"
 msgstr ""
 
+msgid "Please enter the previous working directory."
+msgstr ""
+
+msgid "Loaded installation resume state from: "
+msgstr ""
+
+msgid "No resume state was found; reconstructing the previous run."
+msgstr ""
+
 msgid "Please enter the working directory."
 msgstr ""
 
 msgid "Warning: no supported package manager adapter is available."
+msgstr ""
+
+msgid "Resume: reusing existing repository checkout: "
 msgstr ""
 
 msgid "Failed to clone repository: "
@@ -160,6 +187,19 @@ msgstr ""
 msgid "Installing module stage: "
 msgstr ""
 
+msgid "Resume: skipping completed repository build: "
+msgstr ""
+
+msgid "Resume: skipping completed repository installation: "
+msgstr ""
+
+msgid "Resume: skipping completed module stage: "
+msgstr ""
+
+#, python-brace-format
+msgid "Resume: using the saved source choice for {version_name}."
+msgstr ""
+
 #, python-brace-format
 msgid "Please choose the source for {version_name}."
 msgstr ""
@@ -198,6 +238,9 @@ msgstr ""
 msgid "Successfully installed optional component: "
 msgstr ""
 
+msgid "Resume: using the saved GXDE session choice."
+msgstr ""
+
 msgid "Please choose the GXDE session type to install:"
 msgstr ""
 
@@ -216,10 +259,29 @@ msgstr ""
 msgid "GXDE Wayland session and compositor"
 msgstr ""
 
+msgid "Resume: using the saved APM choice."
+msgstr ""
+
 msgid "Install APM (Amber Package Manager)?"
 msgstr ""
 
+msgid "Resume: skipping completed optional component: APM"
+msgstr ""
+
 msgid "Skipping APM installation."
+msgstr ""
+
+msgid ""
+"The installation recorded in this working directory is already complete."
+msgstr ""
+
+msgid "Installation completed; resume state has been saved."
+msgstr ""
+
+msgid "Build and install the GXDE desktop environment."
+msgstr ""
+
+msgid "Continue from the last incomplete step in a previous working directory."
 msgstr ""
 
 msgid "GXDE Desktop Environment Installer"

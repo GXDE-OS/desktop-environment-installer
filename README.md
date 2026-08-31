@@ -24,3 +24,14 @@ make
 ```bash
 ./dist/gxde-desktop-environment-installer
 ```
+
+If an installation stops with an error, continue from its last incomplete
+module by selecting the same working directory:
+
+```bash
+./dist/gxde-desktop-environment-installer --resume
+```
+
+The installer saves progress after every successful build and installation.
+It can also reconstruct progress for older working directories that do not
+yet contain a resume-state file.

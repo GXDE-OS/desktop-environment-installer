@@ -26,11 +26,16 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 ENTRY_POINT = PROJECT_ROOT / "src" / "main.py"
 
 class I18nTest(unittest.TestCase):
-  def run_app(self, language: str, user_input: str = "n\n") -> str:
+  def run_app(
+      self,
+      language: str,
+      user_input: str = "n\n",
+      arguments: tuple[str, ...] = (),
+    ) -> str:
     environment = os.environ.copy()
     environment["LANGUAGE"] = language
     result = subprocess.run(
-      [sys.executable, str(ENTRY_POINT)],
+      [sys.executable, str(ENTRY_POINT), *arguments],
       check=True,
       capture_output=True,
       text=True,
@@ -48,6 +53,12 @@ class I18nTest(unittest.TestCase):
   def test_get_input_uses_the_active_translation(self) -> None:
     output = self.run_app("zh_CN", "x\nn\n")
     self.assertIn("输入无效，请重试...", output)
+
+  def test_resume_help_is_translated(self) -> None:
+    output = self.run_app("zh_CN", user_input="", arguments=("--help",))
+
+    self.assertIn("--resume", output)
+    self.assertIn("从之前工作目录中最后一个未完成的步骤继续", output)
 
 
 if __name__ == "__main__":

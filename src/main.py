@@ -16,6 +16,7 @@
 # GXDE Desktop Environment Installer.If not,
 # see <https://www.gnu.org/licenses/>.
 
+import argparse
 import sys
 
 from pathlib import Path
@@ -32,7 +33,19 @@ BUNDLE_ROOT = Path(
 LOCALE_DIR = BUNDLE_ROOT / "locale"
 INSTALLER_VERSION = "0.1.0"
 
-def main() -> None:
+def parse_arguments(arguments: list[str] | None = None) -> argparse.Namespace:
+  parser = argparse.ArgumentParser(
+    description=tr("Build and install the GXDE desktop environment."),
+  )
+  parser.add_argument(
+    "--resume",
+    action="store_true",
+    help=tr("Continue from the last incomplete step in a previous working directory."),
+  )
+  return parser.parse_args(arguments)
+
+def main(arguments: list[str] | None = None) -> None:
+  options = parse_arguments(arguments)
   print(tr("GXDE Desktop Environment Installer"))
   print(f"RELEASE v{INSTALLER_VERSION}")
   print("=========================================================")
@@ -50,7 +63,7 @@ def main() -> None:
     sys.exit(0)
 
   init_pm_helper()
-  init_installer()
+  init_installer(resume=options.resume)
   print()
   install_desktop_environment()
 
