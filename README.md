@@ -1,3 +1,5 @@
+![](./docs/img/readme-header.png)
+
 # GXDE Desktop Environment Installer
 ## Introduction
 > Currently, this software is still in early stage of developing.

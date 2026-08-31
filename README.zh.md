@@ -1,3 +1,5 @@
+![](./docs/img/readme-header.zh.png)
+
 # GXDE桌面环境安装器
 ## 简介
 > 当前此程序正在开发的早期阶段！！
