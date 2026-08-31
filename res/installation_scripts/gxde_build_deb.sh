@@ -165,6 +165,20 @@ apply_bundled_source_patch() {
 # present, so updated repositories are not rewritten.
 apply_source_compatibility() {
     case "$PKG_NAME" in
+        gxde-desktop-base)
+            if grep -Fxq \
+                'Maintainer: gfdgd xi <3025613752@qq.com>' \
+                "$PROJ_ROOT/debian/control" \
+                && grep -Fxq \
+                'Uploaders: shenmo <shenmo@spark-app.store>' \
+                "$PROJ_ROOT/debian/control"; then
+                echo "Source compatibility: GXDE Desktop Base maintainer metadata is already valid."
+            else
+                apply_bundled_source_patch \
+                    "GXDE Desktop Base maintainer metadata" \
+                    "$PROJ_ROOT/patches/gxde-desktop-base-maintainers.patch"
+            fi
+            ;;
         dde-qt6platform-plugins)
             local bundled_xcb_headers="$PROJ_ROOT/compat/qt6-xcb-private-headers/6.10.2"
             local source_xcb_headers="$PROJ_ROOT/xcb/libqt6xcbqpa-dev/6.10.2"

@@ -82,6 +82,54 @@ class BuildScriptTest(unittest.TestCase):
 
     self.assertTrue(result.stdout.endswith("-O2 -std=gnu23 -std=gnu17"))
 
+  def test_normalizes_gxde_desktop_base_maintainers(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      shutil.copytree(BUNDLED_PATCHES, repository / "patches")
+      control = repository / "debian/control"
+      control.write_text(
+        "Source: gxde-desktop-base\n"
+        "Section: misc\n"
+        "Priority: optional\n"
+        "Maintainer: gfdgd xi<3025613752@qq.com>, "
+        "shenmo <shenmo@spark-app.store>\n"
+        "Standards-Version: 4.5.1\n"
+        "Build-Depends: \n"
+        " debhelper-compat (= 12),\n",
+        encoding="utf-8",
+      )
+      subprocess.run(
+        ["git", "init", "--quiet"],
+        cwd=repository,
+        check=True,
+      )
+
+      subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          'PKG_NAME="gxde-desktop-base"; apply_source_compatibility',
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      updated_control = control.read_text(encoding="utf-8")
+      self.assertIn(
+        "Maintainer: gfdgd xi <3025613752@qq.com>\n",
+        updated_control,
+      )
+      self.assertIn(
+        "Uploaders: shenmo <shenmo@spark-app.store>\n",
+        updated_control,
+      )
+
   def test_installs_qt_6_10_xcb_private_headers(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)
