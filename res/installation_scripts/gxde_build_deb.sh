@@ -40,6 +40,7 @@ ARTIFACTS_DIR="$(dirname "$PROJ_ROOT")/artifacts"
 
 # Options
 BUILD_BIN=true
+BUILD_ARCH_INDEPENDENT=false
 INSTALL_DEPS=false
 ACT_CLEANUPS=false
 
@@ -52,6 +53,8 @@ print_help() {
     echo ""
     echo "Options:"
     echo "  -b, --binary          Build binary packages only (default)"
+    echo "  -a, --architecture-independent"
+    echo "                        Build Architecture: all packages only"
     echo "  -d, --install-deps    Install dependencies from debian/control, then build"
     echo "  -c, --clean           Remove buildinfo and changes files, then exit"
     echo "  -h, --help            Show this help message"
@@ -69,6 +72,12 @@ parse_args() {
         case $1 in
             -b|--binary)
                 BUILD_BIN=true
+                BUILD_ARCH_INDEPENDENT=false
+                shift
+                ;;
+            -a|--architecture-independent)
+                BUILD_BIN=false
+                BUILD_ARCH_INDEPENDENT=true
                 shift
                 ;;
             -c|--clean)
@@ -226,6 +235,31 @@ apply_source_compatibility() {
     fi
 
     case "$PKG_NAME" in
+        dpa-ext-gnomekeyring)
+            # The current GXDE repository contains no qmake/CMake/Meson build
+            # definition or Debian install manifest.  It therefore produces a
+            # metadata-only compatibility package, matching the package in the
+            # GXDE repository.  Its old Qt, GNOME Keyring and PolicyKit agent
+            # development Build-Depends are therefore unused; the agent one
+            # also creates a cycle because the agent runtime depends on this
+            # package.  Keep only debhelper while the source remains
+            # metadata-only, allowing this package to be built and installed
+            # before the agent even on distributions that retired the legacy
+            # development libraries.
+            if [[ ! -f "$PROJ_ROOT/CMakeLists.txt" \
+                && ! -f "$PROJ_ROOT/meson.build" \
+                && ! -f "$PROJ_ROOT/Makefile" ]] \
+                && ! find "$PROJ_ROOT" -maxdepth 1 -type f \
+                    \( -name '*.pro' -o -name '*.install' \) \
+                    -print -quit | grep -q . \
+                && ! grep -Fxq 'Build-Depends: debhelper (>= 9)' \
+                    "$PROJ_ROOT/debian/control"; then
+                echo "Source compatibility: removing obsolete source-build dependencies from the metadata-only keyring extension."
+                sed -i -E \
+                    's/^Build-Depends:.*/Build-Depends: debhelper (>= 9)/' \
+                    "$PROJ_ROOT/debian/control"
+            fi
+            ;;
         gxde-default-settings)
             local legacy_iwlwifi_config="$PROJ_ROOT/etc.d/modprobe.d/iwlwifi.conf"
             local gxde_iwlwifi_config="$PROJ_ROOT/etc.d/modprobe.d/gxde-iwlwifi.conf"
@@ -502,7 +536,11 @@ exec_build() {
     local build_marker
     local package
     local packages=()
-    [[ "$BUILD_BIN" == true ]] && dpkg_args+=("-b")
+    if [[ "$BUILD_ARCH_INDEPENDENT" == true ]]; then
+        dpkg_args+=("-A")
+    elif [[ "$BUILD_BIN" == true ]]; then
+        dpkg_args+=("-b")
+    fi
 
     cd "$PROJ_ROOT" || exit 1
     prefetch_subprojects

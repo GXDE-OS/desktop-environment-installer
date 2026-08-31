@@ -41,6 +41,9 @@ class PackageManagerTest(unittest.TestCase):
         build_command=("./gxde_build_deb.sh", "-d"),
         artifact_patterns=("*.deb",),
         install_command=("sudo", "apt", "install"),
+        architecture_independent_build_options=(
+          "--architecture-independent",
+        ),
       ),
       package_manager.get_pm_adapter(),
     )

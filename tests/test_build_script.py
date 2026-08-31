@@ -125,6 +125,23 @@ class BuildScriptTest(unittest.TestCase):
 
     self.assertTrue(result.stdout.endswith("-O2 -std=gnu23 -std=gnu17"))
 
+  def test_accepts_architecture_independent_build_mode(self) -> None:
+    result = subprocess.run(
+      [
+        "bash",
+        "-c",
+        'source "$1"; parse_args --architecture-independent; '
+        "printf '%s %s' \"$BUILD_BIN\" \"$BUILD_ARCH_INDEPENDENT\"",
+        "build-script-test",
+        str(BUILD_SCRIPT),
+      ],
+      check=True,
+      capture_output=True,
+      text=True,
+    )
+
+    self.assertEqual("false true", result.stdout)
+
   def test_normalizes_comma_separated_maintainers(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)
@@ -247,6 +264,42 @@ class BuildScriptTest(unittest.TestCase):
         "options iwlwifi power_save=0 swcrypto=0\n",
         renamed_config.read_text(encoding="utf-8"),
       )
+
+  def test_metadata_only_keyring_extension_drops_obsolete_build_deps(
+      self,
+    ) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      control = repository / "debian/control"
+      control.write_text(
+        "Source: dpa-ext-gnomekeyring\n"
+        "Maintainer: GXDE <team@example.com>\n"
+        "Build-Depends: debhelper, qtbase5-dev, "
+        "gxde-polkit-agent-dev, libgnome-keyring-dev\n",
+        encoding="utf-8",
+      )
+
+      subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          'PKG_NAME="dpa-ext-gnomekeyring"; apply_source_compatibility',
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      updated_control = control.read_text(encoding="utf-8")
+      self.assertIn("Build-Depends: debhelper (>= 9)\n", updated_control)
+      self.assertNotIn("qtbase5-dev", updated_control)
+      self.assertNotIn("gxde-polkit-agent-dev", updated_control)
+      self.assertNotIn("libgnome-keyring-dev", updated_control)
 
   def test_imports_qt_core_private_for_qt6_dbus_framework(self) -> None:
     with TemporaryDirectory() as temporary_directory:

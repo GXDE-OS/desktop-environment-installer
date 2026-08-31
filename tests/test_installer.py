@@ -303,7 +303,7 @@ class InstallerTest(unittest.TestCase):
       stage_order,
     )
 
-  def test_wayland_stage_contains_current_session_meta_dependencies(
+  def test_wayland_stage_contains_session_components(
       self,
     ) -> None:
     wayland_repositories = {
@@ -314,8 +314,6 @@ class InstallerTest(unittest.TestCase):
     self.assertTrue({
       "gxde-wlcom",
       "dde-grand-search",
-      "gxde-sni-server",
-      "gxde-top-panel-plugins",
       "gxde-terminal",
       "gxde-display-manager",
       "gxde-wayland-session",
@@ -378,6 +376,53 @@ class InstallerTest(unittest.TestCase):
           core_repositories.index(dependency),
           shell_tools_index,
         )
+
+  def test_keyring_extension_precedes_polkit_agent(self) -> None:
+    core_repositories = [
+      module["repo_name"]
+      for module in installer.CORE_MODULES
+    ]
+
+    self.assertLess(
+      core_repositories.index("dpa-ext-gnomekeyring"),
+      core_repositories.index("gxde-polkit-agent"),
+    )
+
+  def test_core_runtime_dependencies_precede_their_consumers(self) -> None:
+    core_repositories = [
+      module["repo_name"]
+      for module in installer.CORE_MODULES
+    ]
+    dependency_pairs = (
+      ("deepin-installer-reborn", "deepin-daemon"),
+      ("gxde-sni-server", "gxde-dock"),
+      ("gxde-globalmenu-service", "gxde-top-panel"),
+      ("gxde-top-panel-plugins", "gxde-top-panel"),
+      ("gxde-top-panel", "gxde-control-center"),
+      ("gxde-shell-compressor", "gxde-compressor"),
+      ("gxde-compressor", "gxde-file-manager"),
+    )
+
+    for dependency, consumer in dependency_pairs:
+      with self.subTest(dependency=dependency, consumer=consumer):
+        self.assertLess(
+          core_repositories.index(dependency),
+          core_repositories.index(consumer),
+        )
+
+  def test_installer_timezone_module_builds_only_arch_independent_output(
+      self,
+    ) -> None:
+    timezone_module = next(
+      module
+      for module in installer.CORE_MODULES
+      if module["repo_name"] == "deepin-installer-reborn"
+    )
+
+    self.assertEqual(
+      "architecture-independent",
+      timezone_module.get("build_mode"),
+    )
 
   def test_gxde_go_sources_precede_api(self) -> None:
     infra_repositories = [
@@ -561,6 +606,39 @@ class InstallerTest(unittest.TestCase):
       self.assertTrue((archive_dir / "dtk-common.deb").is_file())
       self.assertTrue((archive_dir / "dtk-log.deb").is_file())
 
+  def test_resume_preserves_failed_package_queue_before_stage_restart(
+      self,
+    ) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      artifacts_dir = Path(temporary_directory) / "artifacts"
+      artifacts_dir.mkdir()
+      stale_package = artifacts_dir / "later-failed.deb"
+      stale_package.write_text("previous output", encoding="utf-8")
+
+      with patch.object(installer, "WORKING_DIR", temporary_directory), \
+          patch.object(installer, "RESUME_MODE", True), \
+          patch.object(
+            installer,
+            "get_pm_adapter",
+            return_value=APT_ADAPTER,
+          ), patch.object(installer, "gen_artifact"), \
+          patch.object(installer, "install_current_stage"):
+        installer.install_module_stage(
+          "Empty stage",
+          "empty-stage",
+          [],
+          install_incrementally=True,
+        )
+
+      self.assertFalse(stale_package.exists())
+      recovered_package = (
+        artifacts_dir / "resume-recovery" / stale_package.name
+      )
+      self.assertEqual(
+        "previous output",
+        recovered_package.read_text(encoding="utf-8"),
+      )
+
   def test_current_stage_rejects_archive_paths_outside_artifacts(self) -> None:
     output = StringIO()
 
@@ -732,6 +810,41 @@ class InstallerTest(unittest.TestCase):
     execvp_mock.assert_called_once_with(
       "./test-build",
       ["./test-build", "--install-deps"],
+    )
+
+  def test_build_child_appends_adapter_arch_independent_option(self) -> None:
+    test_adapter = package_manager.PackageManagerAdapter(
+      detection_command="test-pm",
+      display_name="Test Package Manager",
+      build_command=("./test-build", "--install-deps"),
+      artifact_patterns=("*.pkg",),
+      install_command=("doas", "test-pm", "install"),
+      architecture_independent_build_options=("--only-all",),
+    )
+    module = {
+      **TEST_MODULE,
+      "build_mode": "architecture-independent",
+    }
+
+    with patch.object(installer, "WORKING_DIR", "/tmp/gxde-work"), \
+        patch.object(installer, "git_clone", return_value=True), \
+        patch.object(
+          installer,
+          "get_pm_adapter",
+          return_value=test_adapter,
+        ), patch.object(installer.shutil, "copytree"), \
+        patch.object(installer.os, "fork", return_value=0), \
+        patch.object(installer.os, "chdir"), \
+        patch.object(
+          installer.os,
+          "execvp",
+          side_effect=SystemExit,
+        ) as execvp_mock, self.assertRaises(SystemExit):
+      installer.gen_artifact(module)
+
+    execvp_mock.assert_called_once_with(
+      "./test-build",
+      ["./test-build", "--install-deps", "--only-all"],
     )
 
   def test_apt_build_failure_stops_artifact_generation(self) -> None:

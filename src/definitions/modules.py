@@ -16,13 +16,14 @@
 # GXDE Desktop Environment Installer.If not,
 # see <https://www.gnu.org/licenses/>.
 
-from typing import TypedDict
+from typing import Literal, NotRequired, TypedDict
 
 
 class ModuleDefinition(TypedDict):
   repo_name: str
   display_name: str
   branch: str
+  build_mode: NotRequired[Literal["architecture-independent"]]
 
 
 DTK2_ORIGINAL_MODULES: list[ModuleDefinition] = [
@@ -290,9 +291,27 @@ CORE_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    # The PolicyKit agent has a hard runtime dependency on this extension.
+    # Its current Debian source package is metadata-only, so the bundled
+    # build compatibility script removes its obsolete source-build dependency
+    # set and lets it be installed before the agent.
+    "repo_name": "dpa-ext-gnomekeyring",
+    "display_name": "PolicyKit GNOME Keyring Extension",
+    "branch": "master",
+  },
+  {
     "repo_name": "gxde-polkit-agent",
     "display_name": "GXDE PolicyKit Agent",
     "branch": "master",
+  },
+  {
+    # deepin-daemon needs the timezone data package.  This source also defines
+    # the full OS installer, so build only its Architecture: all output and do
+    # not install an installer application into the target desktop.
+    "repo_name": "deepin-installer-reborn",
+    "display_name": "GXDE Installer Timezone Data",
+    "branch": "master",
+    "build_mode": "architecture-independent",
   },
   {
     "repo_name": "deepin-daemon",
@@ -315,8 +334,32 @@ CORE_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    # The dock has a hard runtime dependency on the SNI server in both X11
+    # and Wayland installations.
+    "repo_name": "gxde-sni-server",
+    "display_name": "GXDE Status Notifier Item Server",
+    "branch": "main",
+  },
+  {
     "repo_name": "gxde-dock",
     "display_name": "GXDE Dock",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-globalmenu-service",
+    "display_name": "GXDE Global Menu Service",
+    "branch": "master",
+  },
+  {
+    # The panel hard-depends on this plugin collection; the control center in
+    # turn hard-depends on the panel.
+    "repo_name": "gxde-top-panel-plugins",
+    "display_name": "GXDE Top Panel Plugins",
+    "branch": "d20",
+  },
+  {
+    "repo_name": "gxde-top-panel",
+    "display_name": "GXDE Top Panel",
     "branch": "master",
   },
   {
@@ -332,6 +375,17 @@ CORE_MODULES: list[ModuleDefinition] = [
   {
     "repo_name": "gxde-session-ui",
     "display_name": "GXDE Session UI",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-shell-compressor",
+    "display_name": "GXDE Shell Compressor Integration",
+    "branch": "master",
+  },
+  {
+    # The file manager hard-depends on the compressor package.
+    "repo_name": "gxde-compressor",
+    "display_name": "GXDE Compressor",
     "branch": "master",
   },
   {
@@ -352,26 +406,6 @@ CORE_MODULES: list[ModuleDefinition] = [
   {
     "repo_name": "gxde-time-screensaver",
     "display_name": "GXDE Time Screensaver",
-    "branch": "master",
-  },
-  {
-    "repo_name": "gxde-globalmenu-service",
-    "display_name": "GXDE Global Menu Service",
-    "branch": "master",
-  },
-  {
-    "repo_name": "gxde-top-panel",
-    "display_name": "GXDE Top Panel",
-    "branch": "master",
-  },
-  {
-    "repo_name": "gxde-compressor",
-    "display_name": "GXDE Compressor",
-    "branch": "master",
-  },
-  {
-    "repo_name": "gxde-shell-compressor",
-    "display_name": "GXDE Shell Compressor Integration",
     "branch": "master",
   },
 ]
@@ -404,16 +438,6 @@ WAYLAND_SESSION_MODULES: list[ModuleDefinition] = [
     "repo_name": "dde-grand-search",
     "display_name": "GXDE Grand Search",
     "branch": "master",
-  },
-  {
-    "repo_name": "gxde-sni-server",
-    "display_name": "GXDE Status Notifier Item Server",
-    "branch": "main",
-  },
-  {
-    "repo_name": "gxde-top-panel-plugins",
-    "display_name": "GXDE Top Panel Plugins",
-    "branch": "d20",
   },
   {
     "repo_name": "gxde-terminal",

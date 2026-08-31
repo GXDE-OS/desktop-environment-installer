@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: gxde-desktop-environment-installer 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-31 16:27-0500\n"
+"POT-Creation-Date: 2026-08-31 18:00-0500\n"
 "PO-Revision-Date: 2026-08-28 23:12+0800\n"
 "Last-Translator: GXDE Team\n"
 "Language-Team: English (United States)\n"
@@ -139,6 +139,13 @@ msgstr "Detected package manager: "
 msgid "Successfully generated installation scripts for repository: "
 msgstr "Successfully generated installation scripts for repository: "
 
+msgid ""
+"Warning: the package manager adapter does not support the requested build "
+"mode: "
+msgstr ""
+"Warning: the package manager adapter does not support the requested build "
+"mode: "
+
 msgid "Failed to start package build: "
 msgstr "Failed to start package build: "
 
@@ -177,6 +184,12 @@ msgstr "Successfully installed the current stage: "
 
 msgid "Archived installed packages in: "
 msgstr "Archived installed packages in: "
+
+msgid "Warning: failed to preserve pending package artifacts: "
+msgstr "Warning: failed to preserve pending package artifacts: "
+
+msgid "Resume: preserved pending package artifacts in: "
+msgstr "Resume: preserved pending package artifacts in: "
 
 msgid "DTK2 original compatibility dependencies"
 msgstr "DTK2 original compatibility dependencies"

@@ -369,7 +369,21 @@ def gen_artifact(module: ModuleDefinition) -> None:
   if build_pid == 0:
     try:
       os.chdir(repo_dest)
-      os.execvp(pm_adapter.build_command[0], list(pm_adapter.build_command))
+      build_command = list(pm_adapter.build_command)
+      if module.get("build_mode") == "architecture-independent":
+        if not pm_adapter.architecture_independent_build_options:
+          print(
+            tr("Warning: the package manager adapter does not support the "
+              "requested build mode: ")
+            + "architecture-independent",
+            file=sys.stderr,
+            flush=True,
+          )
+          os._exit(1)
+        build_command.extend(
+          pm_adapter.architecture_independent_build_options
+        )
+      os.execvp(build_command[0], build_command)
     except OSError as error:
       print(
         tr("Failed to start package build: ") + str(error),
@@ -492,6 +506,58 @@ def install_current_stage(archive_name: str) -> None:
   print(tr("Successfully installed the current stage: ") + archive_name)
   print(tr("Archived installed packages in: ") + str(archive_dir))
 
+def _preserve_pending_resume_artifacts() -> None:
+  """Move a failed run's package queue aside without deleting its output."""
+  if not RESUME_MODE:
+    return
+
+  pm_adapter = get_pm_adapter()
+  if pm_adapter is None:
+    return
+
+  artifacts_dir = (Path(WORKING_DIR) / "artifacts").resolve()
+  try:
+    packages = sorted({
+      package.resolve()
+      for pattern in pm_adapter.artifact_patterns
+      for package in artifacts_dir.glob(pattern)
+      if package.is_file()
+    })
+  except OSError as error:
+    print(
+      tr("Warning: failed to read the artifacts directory: ") + str(error),
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  if not packages:
+    return
+
+  recovery_dir = artifacts_dir / "resume-recovery"
+  try:
+    recovery_dir.mkdir(exist_ok=True)
+    for package in packages:
+      destination = recovery_dir / package.name
+      duplicate_index = 1
+      while destination.exists():
+        destination = recovery_dir / (
+          f"{package.stem}.{duplicate_index}{package.suffix}"
+        )
+        duplicate_index += 1
+      package.replace(destination)
+  except OSError as error:
+    print(
+      tr("Warning: failed to preserve pending package artifacts: ")
+      + str(error),
+      file=sys.stderr,
+    )
+    sys.exit(1)
+
+  print(
+    tr("Resume: preserved pending package artifacts in: ")
+    + str(recovery_dir)
+  )
+
 def install_dtk2_original() -> None:
   install_module_stage(
     tr("DTK2 original compatibility dependencies"),
@@ -516,6 +582,14 @@ def install_module_stage(
     install_incrementally: bool = False,
 ) -> None:
   print(tr("Installing module stage: ") + display_name)
+  if install_incrementally:
+    # Top-level artifacts are the active package-manager queue.  A failed
+    # install leaves that queue populated.  On resume it must be preserved but
+    # removed from the active queue before an earlier newly-added dependency
+    # is built, otherwise the package manager also retries the later failed
+    # package too soon.
+    _preserve_pending_resume_artifacts()
+
   for module in modules:
     repo_name = module["repo_name"]
     build_step = _build_step(archive_name, repo_name)

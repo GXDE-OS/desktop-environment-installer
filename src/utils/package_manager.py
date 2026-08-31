@@ -33,6 +33,7 @@ class PackageManagerAdapter:
   build_command: tuple[str, ...]
   artifact_patterns: tuple[str, ...]
   install_command: tuple[str, ...]
+  architecture_independent_build_options: tuple[str, ...] = ()
 
 PM_ADAPTERS = {
   PackageManager.APT: PackageManagerAdapter(
@@ -41,6 +42,7 @@ PM_ADAPTERS = {
     build_command=("./gxde_build_deb.sh", "-d"),
     artifact_patterns=("*.deb",),
     install_command=("sudo", "apt", "install"),
+    architecture_independent_build_options=("--architecture-independent",),
   ),
 }
 
