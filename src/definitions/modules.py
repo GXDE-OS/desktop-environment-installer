@@ -171,6 +171,15 @@ INFRA_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    # Ubuntu 26 no longer publishes libgnome-keyring-dev, but startgxde still
+    # builds its login-keyring compatibility code against that API.  GXDE
+    # maintains the retired library for current distributions, so bootstrap
+    # both its development and runtime packages before entering Core.
+    "repo_name": "libgnome-keyring",
+    "display_name": "GNOME Keyring Compatibility Library",
+    "branch": "master",
+  },
+  {
     # Besides distribution configuration, this package provides the desktop
     # identity files required to build gxde-desktop-schemas and later daemons.
     # Keep it immediately before its first consumer; Infra is installed one

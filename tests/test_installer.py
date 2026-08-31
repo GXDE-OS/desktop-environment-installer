@@ -480,6 +480,19 @@ class InstallerTest(unittest.TestCase):
       infra_repositories.index("gxde-desktop-base"),
     )
 
+  def test_legacy_keyring_library_is_bootstrapped_before_startgxde(
+      self,
+    ) -> None:
+    build_repositories = [
+      module["repo_name"]
+      for module in installer.INFRA_MODULES + installer.CORE_MODULES
+    ]
+
+    self.assertLess(
+      build_repositories.index("libgnome-keyring"),
+      build_repositories.index("startgxde"),
+    )
+
   def test_qt6_dbus_framework_precedes_network_utils(self) -> None:
     infra_repositories = [
       module["repo_name"]
