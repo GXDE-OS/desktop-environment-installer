@@ -127,6 +127,9 @@ check_toolchains() {
     if ! is_cmd_exists "apt-get"; then
         missing_tools+=("apt")
     fi
+    if ! is_cmd_exists "git"; then
+        missing_tools+=("git")
+    fi
 
     if [[ ${#missing_tools[@]} -gt 0 ]]; then
         echo "Missing required tools: ${missing_tools[*]}"
@@ -134,6 +137,41 @@ check_toolchains() {
         exit 1
     fi
     echo "Basic toolchain check passed."
+}
+
+# Apply source-level compatibility fixes bundled with the installer.  Patches
+# are scoped to their source package and skipped once the fixed code is
+# present, so updated repositories and unrelated package-manager backends are
+# not rewritten.
+apply_source_compatibility() {
+    local patch_file="$PROJ_ROOT/patches/dtk6widget-qt-6.10.patch"
+
+    if [[ "$PKG_NAME" != "dtk6widget" ]]; then
+        return
+    fi
+
+    if grep -q 'D_DECLARE_PRIVATE_MEMBER(QDragManager_m_platformDrag_tag' \
+        "$PROJ_ROOT/src/widgets/dtabbar.cpp" \
+        && grep -q 'QT_VERSION_CHECK(6, 10, 1)' \
+        "$PROJ_ROOT/src/widgets/dtabbar.cpp"; then
+        echo "Source compatibility: DTK6 Widget already supports Qt 6.10.2."
+        return
+    fi
+
+    if [[ ! -f "$patch_file" ]]; then
+        echo "Error: bundled DTK6 Widget compatibility patch was not found."
+        exit 1
+    fi
+    if ! git -C "$PROJ_ROOT" apply --check "$patch_file"; then
+        echo "Error: DTK6 Widget Qt 6.10 compatibility patch does not apply cleanly."
+        exit 1
+    fi
+
+    echo "Source compatibility: applying DTK6 Widget Qt 6.10 fixes."
+    if ! git -C "$PROJ_ROOT" apply "$patch_file"; then
+        echo "Error: failed to apply DTK6 Widget Qt 6.10 compatibility fixes."
+        exit 1
+    fi
 }
 
 # Drop build dependencies that were retired by the active APT distribution.
@@ -272,6 +310,7 @@ main() {
     fi
 
     check_toolchains
+    apply_source_compatibility
     auto_install_deps
     exec_build
 }
