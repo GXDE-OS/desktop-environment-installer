@@ -1,0 +1,52 @@
+diff --git a/src/widgets/dtabbar.cpp b/src/widgets/dtabbar.cpp
+index 3b3d302..4508939 100644
+--- a/src/widgets/dtabbar.cpp
++++ b/src/widgets/dtabbar.cpp
+@@ -540,7 +540,11 @@ void DTabBarPrivate::layoutTab(int index)
+     if (tab.leftWidget) {
+         QRect rect = style()->subElementRect(QStyle::SE_TabBarTabLeftButton, &opt, this);
+         QPoint p = rect.topLeft();
++#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
++        if (index == d->pressedIndex) {
++#else
+         if ((index == d->pressedIndex) || d->paintWithOffsets) {
++#endif
+             if (vertical)
+                 p.setY(p.y() + d->tabList[index]->dragOffset);
+             else
+@@ -551,7 +555,11 @@ void DTabBarPrivate::layoutTab(int index)
+     if (tab.rightWidget) {
+         QRect rect = style()->subElementRect(QStyle::SE_TabBarTabRightButton, &opt, this);
+         QPoint p = rect.topLeft();
++#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
++        if (index == d->pressedIndex) {
++#else
+         if ((index == d->pressedIndex) || d->paintWithOffsets) {
++#endif
+             if (vertical)
+                 p.setY(p.y() + tab.dragOffset);
+             else
+@@ -987,7 +995,11 @@ void DTabBarPrivate::paintEvent(QPaintEvent *e)
+         initStyleOption(&tab, i);
+         // 强制让文本居中
+         tab.rightButtonSize = QSize();
++#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
++        if (d->tabList[i]->dragOffset != 0) {
++#else
+         if (d->paintWithOffsets && d->tabList[i]->dragOffset != 0) {
++#endif
+             if (vertical) {
+                 tab.rect.moveTop(tab.rect.y() + d->tabList[i]->dragOffset);
+             } else {
+@@ -1028,7 +1040,11 @@ void DTabBarPrivate::paintEvent(QPaintEvent *e)
+         initStyleOption(&tab, selected);
+         // 强制让文本居中
+         tab.rightButtonSize = QSize();
++#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
++        if (d->tabList[selected]->dragOffset != 0) {
++#else
+         if (d->paintWithOffsets && d->tabList[selected]->dragOffset != 0) {
++#endif
+             if (vertical) {
+                 tab.rect.moveTop(tab.rect.y() + d->tabList[selected]->dragOffset);
+             } else {

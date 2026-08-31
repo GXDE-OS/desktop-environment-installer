@@ -196,6 +196,34 @@ apply_source_compatibility() {
                     "DTK2 Widget Qt6 Qt 6.10 enum string formatting" \
                     "$PROJ_ROOT/patches/dtk2widget6-qt-6.10-enum-string-format.patch"
             fi
+            if grep -q 'QT_VERSION_CHECK(6, 10, 0)' \
+                "$PROJ_ROOT/src/widgets/dtabbar.cpp" \
+                && grep -q 'if (index == d->pressedIndex)' \
+                "$PROJ_ROOT/src/widgets/dtabbar.cpp"; then
+                echo "Source compatibility: DTK2 Widget Qt6 already supports Qt 6.10 tab offsets."
+            else
+                apply_bundled_source_patch \
+                    "DTK2 Widget Qt6 Qt 6.10 tab offsets" \
+                    "$PROJ_ROOT/patches/dtk2widget6-qt-6.10-tab-offsets.patch"
+            fi
+            if tail -n 1 "$PROJ_ROOT/src/util/dregionmonitor.cpp" \
+                | grep -Fxq '#include "moc_dregionmonitor.cpp"'; then
+                echo "Source compatibility: DTK2 Widget Qt6 moc include is outside the DTK namespace."
+            else
+                apply_bundled_source_patch \
+                    "DTK2 Widget Qt6 Qt 6.10 moc namespace" \
+                    "$PROJ_ROOT/patches/dtk2widget6-qt-6.10-moc-namespace.patch"
+            fi
+            ;;
+        gxde-qt6integration)
+            if tail -n 1 "$PROJ_ROOT/dstyleplugin-qt6/style.cpp" \
+                | grep -Fxq '#include "moc_style.cpp"'; then
+                echo "Source compatibility: GXDE Qt6 Integration moc include is outside the style namespace."
+            else
+                apply_bundled_source_patch \
+                    "GXDE Qt6 Integration Qt 6.10 moc namespace" \
+                    "$PROJ_ROOT/patches/gxde-qt6integration-qt-6.10-moc-namespace.patch"
+            fi
             ;;
         dtk6widget)
             if grep -q \

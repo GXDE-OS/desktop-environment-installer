@@ -20,6 +20,7 @@ BUNDLED_XCB_HEADERS = (
   PROJECT_ROOT
   / "res/installation_scripts/compat/qt6-xcb-private-headers/6.10.2"
 )
+BUNDLED_PATCHES = PROJECT_ROOT / "res/installation_scripts/patches"
 
 
 class BuildScriptTest(unittest.TestCase):
@@ -96,6 +97,101 @@ class BuildScriptTest(unittest.TestCase):
         (BUNDLED_XCB_HEADERS / "qxcbconnection.h").read_bytes(),
         (installed_headers / "qxcbconnection.h").read_bytes(),
       )
+
+  def test_moves_dtk2widget_moc_include_outside_namespace(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "src/widgets").mkdir(parents=True)
+      (repository / "src/util").mkdir(parents=True)
+      shutil.copytree(BUNDLED_PATCHES, repository / "patches")
+      (repository / "src/widgets/dsettingswidgetfactory.cpp").write_text(
+        "QString::number(static_cast<int>(modifier));\n"
+        "QString::number(static_cast<int>(key));\n",
+        encoding="utf-8",
+      )
+      (repository / "src/widgets/dtabbar.cpp").write_text(
+        "#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)\n"
+        "if (index == d->pressedIndex) {}\n",
+        encoding="utf-8",
+      )
+      region_monitor = repository / "src/util/dregionmonitor.cpp"
+      region_monitor.write_text(
+        "    return p / ratio;\n"
+        "}\n\n"
+        '#include "moc_dregionmonitor.cpp"\n\n'
+        "DWIDGET_END_NAMESPACE\n",
+        encoding="utf-8",
+      )
+      subprocess.run(
+        ["git", "init", "--quiet"],
+        cwd=repository,
+        check=True,
+      )
+
+      subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          'PKG_NAME="dtk2widget6"; apply_source_compatibility',
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      lines = [
+        line
+        for line in region_monitor.read_text(encoding="utf-8").splitlines()
+        if line
+      ]
+      self.assertEqual("DWIDGET_END_NAMESPACE", lines[-2])
+      self.assertEqual('#include "moc_dregionmonitor.cpp"', lines[-1])
+
+  def test_moves_gxde_qt6integration_moc_include_outside_namespace(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      style_directory = repository / "dstyleplugin-qt6"
+      style_directory.mkdir()
+      shutil.copytree(BUNDLED_PATCHES, repository / "patches")
+      style = style_directory / "style.cpp"
+      style.write_text(
+        "    }\n"
+        "}\n\n"
+        '#include "moc_style.cpp"\n\n'
+        "}\n",
+        encoding="utf-8",
+      )
+      subprocess.run(
+        ["git", "init", "--quiet"],
+        cwd=repository,
+        check=True,
+      )
+
+      subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          'PKG_NAME="gxde-qt6integration"; apply_source_compatibility',
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      lines = [
+        line for line in style.read_text(encoding="utf-8").splitlines()
+        if line
+      ]
+      self.assertEqual("}", lines[-2])
+      self.assertEqual('#include "moc_style.cpp"', lines[-1])
 
 
 if __name__ == "__main__":
