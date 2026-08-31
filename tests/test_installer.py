@@ -313,11 +313,34 @@ class InstallerTest(unittest.TestCase):
 
     self.assertTrue({
       "gxde-wlcom",
+      "gxde-daemon",
       "dde-grand-search",
       "gxde-terminal",
       "gxde-display-manager",
       "gxde-wayland-session",
     }.issubset(wayland_repositories))
+
+    self.assertLess(
+      next(
+        index
+        for index, module in enumerate(installer.WAYLAND_SESSION_MODULES)
+        if module["repo_name"] == "gxde-wlcom"
+      ),
+      next(
+        index
+        for index, module in enumerate(installer.WAYLAND_SESSION_MODULES)
+        if module["repo_name"] == "gxde-daemon"
+      ),
+    )
+
+  def test_wayland_specific_daemon_is_not_in_core(self) -> None:
+    self.assertNotIn(
+      "gxde-daemon",
+      {
+        module["repo_name"]
+        for module in installer.CORE_MODULES
+      },
+    )
 
   def test_distribution_base_package_is_not_installed_as_desktop_core(
       self,

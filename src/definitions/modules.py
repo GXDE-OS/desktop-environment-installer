@@ -319,11 +319,6 @@ CORE_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
-    "repo_name": "gxde-daemon",
-    "display_name": "GXDE Desktop Daemon",
-    "branch": "master",
-  },
-  {
     "repo_name": "startgxde",
     "display_name": "GXDE Session Starter",
     "branch": "master",
@@ -433,6 +428,13 @@ WAYLAND_SESSION_MODULES: list[ModuleDefinition] = [
     "repo_name": "gxde-wlcom",
     "display_name": "GXDE Wayland compositor",
     "branch": "gxde/zhuangzhuang",
+  },
+  {
+    # The current daemon links to and hard-depends on the wlcom client, so it
+    # belongs to the Wayland session rather than the session-neutral core.
+    "repo_name": "gxde-daemon",
+    "display_name": "GXDE Wayland Desktop Daemon",
+    "branch": "master",
   },
   {
     "repo_name": "dde-grand-search",

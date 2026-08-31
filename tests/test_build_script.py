@@ -301,6 +301,78 @@ class BuildScriptTest(unittest.TestCase):
       self.assertNotIn("gxde-polkit-agent-dev", updated_control)
       self.assertNotIn("libgnome-keyring-dev", updated_control)
 
+  def test_deepin_daemon_defers_compositor_until_session_selection(
+      self,
+    ) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      control = repository / "debian/control"
+      control.write_text(
+        "Source: deepin-daemon\n"
+        "Maintainer: GXDE <team@example.com>\n"
+        "Package: deepin-daemon\n"
+        "Depends: network-manager,\n"
+        " deepin-wm | deepin-metacity | dde-kwin | gxde-wlcom,\n"
+        " gxde-desktop-schemas\n",
+        encoding="utf-8",
+      )
+
+      subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          'PKG_NAME="deepin-daemon"; apply_source_compatibility',
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      updated_control = control.read_text(encoding="utf-8")
+      self.assertNotIn("deepin-wm", updated_control)
+      self.assertNotIn("gxde-wlcom", updated_control)
+      self.assertIn(" gxde-desktop-schemas\n", updated_control)
+
+  def test_startgxde_defers_compositor_until_session_selection(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      control = repository / "debian/control"
+      control.write_text(
+        "Source: startgxde\n"
+        "Maintainer: GXDE <team@example.com>\n"
+        "Package: startgxde\n"
+        "Depends: deepin-daemon,\n"
+        " gxde-wm-shim | deepin-metacity | gxde-kwin-neo | gxde-wlcom,\n"
+        " gxde-desktop-schemas\n",
+        encoding="utf-8",
+      )
+
+      subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          'PKG_NAME="startgxde"; apply_source_compatibility',
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      updated_control = control.read_text(encoding="utf-8")
+      self.assertNotIn("gxde-wm-shim", updated_control)
+      self.assertNotIn("gxde-wlcom", updated_control)
+      self.assertIn(" gxde-desktop-schemas\n", updated_control)
+
   def test_imports_qt_core_private_for_qt6_dbus_framework(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)

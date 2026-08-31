@@ -226,6 +226,31 @@ normalize_debian_maintainer_metadata() {
     echo "Source compatibility: normalized Debian maintainer metadata."
 }
 
+# Core session packages are built and installed before the user chooses an X11
+# or Wayland compositor.  Their historical Debian metadata requires a window
+# manager immediately, which either blocks bootstrap or makes APT pick an
+# unrelated distribution compositor.  The installer guarantees that the
+# chosen session stack is installed later, so remove only the exact standalone
+# dependency line from the cloned package metadata.
+defer_session_runtime_dependency() {
+    local dependency_expression="$1"
+    local control_file="$PROJ_ROOT/debian/control"
+    local escaped_expression
+
+    escaped_expression="$(printf '%s\n' "$dependency_expression" \
+        | sed -E 's/[][(){}.^$*+?|\\]/\\&/g')"
+    if ! grep -Eq \
+        "^[[:space:]]*${escaped_expression},?[[:space:]]*$" \
+        "$control_file"; then
+        return
+    fi
+
+    echo "Source compatibility: deferring session compositor dependency until session selection."
+    sed -i -E \
+        "/^[[:space:]]*${escaped_expression},?[[:space:]]*$/d" \
+        "$control_file"
+}
+
 # Apply source-level compatibility fixes bundled with the installer. Patches
 # are scoped to their source package and skipped once the fixed code is
 # present, so updated repositories are not rewritten.
@@ -235,6 +260,14 @@ apply_source_compatibility() {
     fi
 
     case "$PKG_NAME" in
+        deepin-daemon)
+            defer_session_runtime_dependency \
+                'deepin-wm | deepin-metacity | dde-kwin | gxde-wlcom'
+            ;;
+        startgxde)
+            defer_session_runtime_dependency \
+                'gxde-wm-shim | deepin-metacity | gxde-kwin-neo | gxde-wlcom'
+            ;;
         dpa-ext-gnomekeyring)
             # The current GXDE repository contains no qmake/CMake/Meson build
             # definition or Debian install manifest.  It therefore produces a
