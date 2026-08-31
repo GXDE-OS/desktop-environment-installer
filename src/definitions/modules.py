@@ -196,6 +196,22 @@ INFRA_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    # Ubuntu does not package this wlroots protocol collection.  The GXDE
+    # portal declares it as a build dependency, so bootstrap it from GXDE's
+    # source repository before building the portal.
+    "repo_name": "wlr-protocols",
+    "display_name": "wlroots Protocols",
+    "branch": "master",
+  },
+  {
+    # xdg-desktop-portal-gxde needs treeland-protocols >= 0.5.9; Ubuntu 26
+    # currently carries 0.5.4, while GXDE's source repository provides the
+    # required version.
+    "repo_name": "treeland-protocols",
+    "display_name": "Treeland Protocols",
+    "branch": "master",
+  },
+  {
     "repo_name": "xdg-desktop-portal-gxde",
     "display_name": "XDG Desktop Portal for GXDE",
     "branch": "master",

@@ -403,6 +403,22 @@ class InstallerTest(unittest.TestCase):
       infra_repositories.index("gxde-network-utils-qt6"),
     )
 
+  def test_wayland_protocol_sources_precede_desktop_portal(self) -> None:
+    infra_repositories = [
+      module["repo_name"]
+      for module in installer.INFRA_MODULES
+    ]
+    portal_index = infra_repositories.index("xdg-desktop-portal-gxde")
+
+    self.assertLess(
+      infra_repositories.index("wlr-protocols"),
+      portal_index,
+    )
+    self.assertLess(
+      infra_repositories.index("treeland-protocols"),
+      portal_index,
+    )
+
   def test_infra_installs_modules_incrementally(self) -> None:
     with patch.object(installer, "install_module_stage") as install_stage:
       installer.install_infra()
