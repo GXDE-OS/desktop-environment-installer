@@ -163,6 +163,13 @@ INFRA_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    # Desktop Base depends on the archive key package even when installation
+    # is bootstrapped from source on a system without the GXDE APT repository.
+    "repo_name": "deepin-keyring",
+    "display_name": "Deepin Archive Keyring",
+    "branch": "master",
+  },
+  {
     # Besides distribution configuration, this package provides the desktop
     # identity files required to build gxde-desktop-schemas and later daemons.
     # Keep it immediately before its first consumer; Infra is installed one

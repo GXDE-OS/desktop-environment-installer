@@ -381,6 +381,17 @@ class InstallerTest(unittest.TestCase):
       infra_repositories.index("gxde-desktop-schemas"),
     )
 
+  def test_deepin_keyring_precedes_desktop_base(self) -> None:
+    infra_repositories = [
+      module["repo_name"]
+      for module in installer.INFRA_MODULES
+    ]
+
+    self.assertLess(
+      infra_repositories.index("deepin-keyring"),
+      infra_repositories.index("gxde-desktop-base"),
+    )
+
   def test_infra_installs_modules_incrementally(self) -> None:
     with patch.object(installer, "install_module_stage") as install_stage:
       installer.install_infra()
