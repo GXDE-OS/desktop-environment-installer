@@ -359,6 +359,26 @@ class InstallerTest(unittest.TestCase):
       "deepin-screensaver",
     }.issubset(core_repositories))
 
+  def test_shell_tools_runtime_dependencies_precede_meta_package(self) -> None:
+    core_repositories = [
+      module["repo_name"]
+      for module in installer.CORE_MODULES
+    ]
+    shell_tools_index = core_repositories.index("gxde-shell-tools")
+
+    for dependency in (
+        "transhell",
+        "garma",
+        "gxde-app-installer",
+        "gxde-app-upgrader",
+        "gxde-app-uninstaller",
+      ):
+      with self.subTest(dependency=dependency):
+        self.assertLess(
+          core_repositories.index(dependency),
+          shell_tools_index,
+        )
+
   def test_gxde_go_sources_precede_api(self) -> None:
     infra_repositories = [
       module["repo_name"]

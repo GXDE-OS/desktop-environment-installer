@@ -250,6 +250,36 @@ CORE_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    # The application helper scripts source this shared shell translation
+    # library at runtime.
+    "repo_name": "transhell",
+    "display_name": "Transhell",
+    "branch": "master",
+  },
+  {
+    # gxde-app-installer requires Garma for its DTK/Qt6 dialogs.
+    "repo_name": "garma",
+    "display_name": "Garma Dialog Utility",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-app-installer",
+    "display_name": "GXDE Application Installer",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-app-upgrader",
+    "display_name": "GXDE Application Upgrader",
+    "branch": "master",
+  },
+  {
+    "repo_name": "gxde-app-uninstaller",
+    "display_name": "GXDE Application Uninstaller",
+    "branch": "master",
+  },
+  {
+    # This is a meta package whose hard runtime dependencies are the three
+    # application helpers above.
     "repo_name": "gxde-shell-tools",
     "display_name": "GXDE Shell Tools",
     "branch": "master",
@@ -292,21 +322,6 @@ CORE_MODULES: list[ModuleDefinition] = [
   {
     "repo_name": "gxde-control-center",
     "display_name": "GXDE Control Center",
-    "branch": "master",
-  },
-  {
-    "repo_name": "gxde-app-installer",
-    "display_name": "GXDE Application Installer",
-    "branch": "master",
-  },
-  {
-    "repo_name": "gxde-app-upgrader",
-    "display_name": "GXDE Application Upgrader",
-    "branch": "master",
-  },
-  {
-    "repo_name": "gxde-app-uninstaller",
-    "display_name": "GXDE Application Uninstaller",
     "branch": "master",
   },
   {
