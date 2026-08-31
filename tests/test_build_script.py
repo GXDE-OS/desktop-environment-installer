@@ -301,6 +301,50 @@ class BuildScriptTest(unittest.TestCase):
       self.assertNotIn("gxde-polkit-agent-dev", updated_control)
       self.assertNotIn("libgnome-keyring-dev", updated_control)
 
+  def test_legacy_keyring_allows_retired_cdbs_autoreconf_rule(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      (repository / "debian/control").write_text(
+        "Source: libgnome-keyring\n"
+        "Maintainer: GXDE <team@example.com>\n"
+        "Build-Depends: cdbs, dh-autoreconf\n",
+        encoding="utf-8",
+      )
+      rules = repository / "debian/rules"
+      rules.write_text(
+        "#!/usr/bin/make -f\n"
+        "include /usr/share/cdbs/1/rules/debhelper.mk\n"
+        "include /usr/share/cdbs/1/rules/autoreconf.mk\n"
+        "include /usr/share/cdbs/1/class/gnome.mk\n",
+        encoding="utf-8",
+      )
+
+      subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          'PKG_NAME="libgnome-keyring"; apply_source_compatibility',
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      updated_rules = rules.read_text(encoding="utf-8")
+      self.assertIn(
+        "-include /usr/share/cdbs/1/rules/autoreconf.mk\n",
+        updated_rules,
+      )
+      self.assertNotIn(
+        "\ninclude /usr/share/cdbs/1/rules/autoreconf.mk\n",
+        updated_rules,
+      )
+
   def test_deepin_daemon_defers_compositor_until_session_selection(
       self,
     ) -> None:

@@ -293,6 +293,26 @@ apply_source_compatibility() {
                     "$PROJ_ROOT/debian/control"
             fi
             ;;
+        libgnome-keyring)
+            # New CDBS releases may omit rules/autoreconf.mk even though the
+            # cdbs package itself is available.  This source archive already
+            # contains generated configure and Makefile.in files, so retain
+            # autoreconf support where present while allowing the normal CDBS
+            # build to continue where that optional rule was retired.
+            local cdbs_autoreconf_rule='include /usr/share/cdbs/1/rules/autoreconf.mk'
+            local optional_cdbs_autoreconf_rule='-include /usr/share/cdbs/1/rules/autoreconf.mk'
+
+            if grep -Fxq -- "$optional_cdbs_autoreconf_rule" \
+                "$PROJ_ROOT/debian/rules"; then
+                echo "Source compatibility: the optional CDBS autoreconf rule is already configured."
+            elif grep -Fxq "$cdbs_autoreconf_rule" \
+                "$PROJ_ROOT/debian/rules"; then
+                echo "Source compatibility: making the retired CDBS autoreconf rule optional."
+                sed -i \
+                    "s|^${cdbs_autoreconf_rule}$|${optional_cdbs_autoreconf_rule}|" \
+                    "$PROJ_ROOT/debian/rules"
+            fi
+            ;;
         gxde-default-settings)
             local legacy_iwlwifi_config="$PROJ_ROOT/etc.d/modprobe.d/iwlwifi.conf"
             local gxde_iwlwifi_config="$PROJ_ROOT/etc.d/modprobe.d/gxde-iwlwifi.conf"
