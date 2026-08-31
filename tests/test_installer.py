@@ -477,6 +477,7 @@ class InstallerTest(unittest.TestCase):
             "get_pm_adapter",
             return_value=test_adapter,
           ), patch.object(installer.os, "fork", return_value=0), \
+          patch.object(installer.os, "chdir") as chdir_mock, \
           patch.object(
             installer.os,
             "execvp",
@@ -494,6 +495,7 @@ class InstallerTest(unittest.TestCase):
         str(second_package.resolve()),
       ],
     )
+    chdir_mock.assert_called_once_with(artifacts_dir.resolve())
 
   def test_current_stage_parent_waits_for_apt_installation(self) -> None:
     with TemporaryDirectory() as temporary_directory:

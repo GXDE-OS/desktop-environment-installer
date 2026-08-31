@@ -226,6 +226,23 @@ apply_source_compatibility() {
     fi
 
     case "$PKG_NAME" in
+        gxde-default-settings)
+            local legacy_iwlwifi_config="$PROJ_ROOT/etc.d/modprobe.d/iwlwifi.conf"
+            local gxde_iwlwifi_config="$PROJ_ROOT/etc.d/modprobe.d/gxde-iwlwifi.conf"
+
+            if [[ -f "$legacy_iwlwifi_config" && -f "$gxde_iwlwifi_config" ]]; then
+                echo "Error: both legacy and GXDE-specific iwlwifi configuration files exist."
+                exit 1
+            elif [[ -f "$legacy_iwlwifi_config" ]]; then
+                echo "Source compatibility: renaming the GXDE iwlwifi configuration to avoid distribution package conflicts."
+                if ! mv "$legacy_iwlwifi_config" "$gxde_iwlwifi_config"; then
+                    echo "Error: failed to rename the GXDE iwlwifi configuration."
+                    exit 1
+                fi
+            elif [[ -f "$gxde_iwlwifi_config" ]]; then
+                echo "Source compatibility: the GXDE iwlwifi configuration already has a distribution-safe name."
+            fi
+            ;;
         libdframeworkdbus-qt6)
             if grep -Fq \
                 'find_package(Qt6CorePrivate REQUIRED)' \

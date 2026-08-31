@@ -115,7 +115,9 @@ class ResumeTest(unittest.TestCase):
       installer._is_step_completed("install:test-stage:failed"),
     )
 
-  def test_resume_rebuilds_when_uninstalled_artifacts_were_archived(self) -> None:
+  def test_resume_rebuilds_after_install_failed_with_artifacts_present(
+      self,
+    ) -> None:
     module = {
       "repo_name": "failed",
       "display_name": "Failed",
@@ -147,6 +149,9 @@ class ResumeTest(unittest.TestCase):
         "install_current_stage",
         side_effect=lambda unused_archive: operations.append("install"),
       ), patch.object(installer, "_save_installation_state"):
+      artifacts_dir = Path(temporary_directory) / "artifacts"
+      artifacts_dir.mkdir()
+      (artifacts_dir / "failed.deb").touch()
       installer.install_module_stage(
         "Test stage",
         "test-stage",

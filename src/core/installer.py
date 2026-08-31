@@ -442,6 +442,10 @@ def install_current_stage(archive_name: str) -> None:
 
   if install_pid == 0:
     try:
+      # The installer may have been launched from a directory replaced by an
+      # update while it was running.  Give APT a stable working directory so
+      # its shell and _apt helper processes can always resolve getcwd().
+      os.chdir(artifacts_dir)
       install_command = [
         *pm_adapter.install_command,
         *(str(package) for package in packages),
@@ -504,18 +508,6 @@ def install_dtk2_qt6() -> None:
     install_incrementally=True,
   )
 
-def _has_unarchived_package_artifacts() -> bool:
-  pm_adapter = get_pm_adapter()
-  if pm_adapter is None:
-    return False
-
-  artifacts_dir = Path(WORKING_DIR) / "artifacts"
-  return any(
-    package.is_file()
-    for pattern in pm_adapter.artifact_patterns
-    for package in artifacts_dir.glob(pattern)
-  )
-
 def install_module_stage(
     display_name: str,
     archive_name: str,
@@ -532,16 +524,16 @@ def install_module_stage(
     install_completed = (
       install_incrementally and _is_step_completed(install_step)
     )
-    rebuild_missing_artifacts = (
+    rebuild_incomplete_install = (
       build_completed
       and install_incrementally
       and not install_completed
-      and not _has_unarchived_package_artifacts()
     )
 
-    if rebuild_missing_artifacts:
+    if rebuild_incomplete_install:
       print(
-        tr("Resume: package artifacts are missing; rebuilding repository: ")
+        tr("Resume: the previous package installation did not complete; "
+          "rebuilding repository: ")
         + module["display_name"]
       )
       gen_artifact(module)

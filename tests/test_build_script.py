@@ -208,6 +208,46 @@ class BuildScriptTest(unittest.TestCase):
       )
       self.assertEqual(updated_control.count("Uploaders:"), 1)
 
+  def test_renames_gxde_iwlwifi_config_to_avoid_kmod_conflict(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      control = repository / "debian/control"
+      control.write_text(
+        "Source: gxde-default-settings\n"
+        "Maintainer: GXDE <team@example.com>\n",
+        encoding="utf-8",
+      )
+      modprobe_directory = repository / "etc.d/modprobe.d"
+      modprobe_directory.mkdir(parents=True)
+      legacy_config = modprobe_directory / "iwlwifi.conf"
+      legacy_config.write_text(
+        "options iwlwifi power_save=0 swcrypto=0\n",
+        encoding="utf-8",
+      )
+
+      subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          'PKG_NAME="gxde-default-settings"; apply_source_compatibility',
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      renamed_config = modprobe_directory / "gxde-iwlwifi.conf"
+      self.assertFalse(legacy_config.exists())
+      self.assertEqual(
+        "options iwlwifi power_save=0 swcrypto=0\n",
+        renamed_config.read_text(encoding="utf-8"),
+      )
+
   def test_imports_qt_core_private_for_qt6_dbus_framework(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)
