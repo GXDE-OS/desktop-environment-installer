@@ -27,6 +27,13 @@ class ModuleDefinition(TypedDict):
 
 DTK2_ORIGINAL_MODULES: list[ModuleDefinition] = [
   {
+    # DTK2-Widget still links against the original DTK2 Core compatibility
+    # packages. Build and install them before the remaining DTK2 stack.
+    "repo_name": "dtk2core",
+    "display_name": "DTK2-Core",
+    "branch": "master",
+  },
+  {
     # DTK2-Widget consumes the generated libgxframeworkdbus development
     # package, so this infrastructure library has to be bootstrapped as part
     # of the original DTK2 phase rather than built with the later infra stage.

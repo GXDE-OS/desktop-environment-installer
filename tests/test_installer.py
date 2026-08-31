@@ -83,6 +83,7 @@ class InstallerTest(unittest.TestCase):
     ]
 
     self.assertEqual([
+      "dtk2core",
       "dde-qt-dbus-factory",
       "dtk2widget",
       "gxde-qt5integration",
@@ -93,6 +94,10 @@ class InstallerTest(unittest.TestCase):
     ], qt6_repositories)
 
   def test_dtk_modules_are_in_build_dependency_order(self) -> None:
+    dtk2_original_repositories = [
+      module["repo_name"]
+      for module in installer.DTK2_ORIGINAL_MODULES
+    ]
     dtk5_repositories = [
       module["repo_name"]
       for module in installer.DTK5_MODULES
@@ -102,6 +107,10 @@ class InstallerTest(unittest.TestCase):
       for module in installer.DTK6_MODULES
     ]
 
+    self.assertLess(
+      dtk2_original_repositories.index("dtk2core"),
+      dtk2_original_repositories.index("dtk2widget"),
+    )
     self.assertLess(
       dtk5_repositories.index("dtklog"),
       dtk5_repositories.index("dtk5core"),
