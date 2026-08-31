@@ -143,6 +143,14 @@ DTK6_MODULES: list[ModuleDefinition] = [
 # overwrite host-distribution policy rather than just install the desktop.
 INFRA_MODULES: list[ModuleDefinition] = [
   {
+    # GXDE's Go components use a curated GOPATH rooted at
+    # /usr/share/gocode-gxde. Build and install this bootstrap source bundle
+    # before gxde-api and the later daemon repositories consume it.
+    "repo_name": "golang-gxde-dev",
+    "display_name": "GXDE Go Development Sources",
+    "branch": "master",
+  },
+  {
     "repo_name": "gxde-k9",
     "display_name": "GXDE Service Runner",
     "branch": "master",

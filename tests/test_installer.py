@@ -336,6 +336,7 @@ class InstallerTest(unittest.TestCase):
     }
 
     self.assertIn("gxde-k9", infra_repositories)
+    self.assertIn("golang-gxde-dev", infra_repositories)
     self.assertTrue({
       "gxde-account-faces",
       "gxde-app-installer",
@@ -351,6 +352,28 @@ class InstallerTest(unittest.TestCase):
       "deepin-menu",
       "deepin-screensaver",
     }.issubset(core_repositories))
+
+  def test_gxde_go_sources_precede_api(self) -> None:
+    infra_repositories = [
+      module["repo_name"]
+      for module in installer.INFRA_MODULES
+    ]
+
+    self.assertLess(
+      infra_repositories.index("golang-gxde-dev"),
+      infra_repositories.index("gxde-api"),
+    )
+
+  def test_infra_installs_modules_incrementally(self) -> None:
+    with patch.object(installer, "install_module_stage") as install_stage:
+      installer.install_infra()
+
+    install_stage.assert_called_once_with(
+      installer.tr("GXDE infrastructure dependencies"),
+      "infra",
+      installer.INFRA_MODULES,
+      install_incrementally=True,
+    )
 
   def test_x11_stage_contains_kwin_runtime_dependencies(self) -> None:
     x11_repositories = {

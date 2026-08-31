@@ -161,7 +161,7 @@ def _initialize_legacy_resume_state(
     ("dtk2-original", DTK2_ORIGINAL_MODULES, True),
     ("dtk6", DTK6_MODULES, True),
     ("dtk2-qt6", DTK2_QT6_MODULES, True),
-    ("infra", INFRA_MODULES, False),
+    ("infra", INFRA_MODULES, True),
     ("core", CORE_MODULES, False),
     ("x11-session", X11_SESSION_MODULES, False),
     ("wayland-session", WAYLAND_SESSION_MODULES, False),
@@ -633,6 +633,7 @@ def install_infra() -> None:
     tr("GXDE infrastructure dependencies"),
     "infra",
     INFRA_MODULES,
+    install_incrementally=True,
   )
 
 def install_core() -> None:
