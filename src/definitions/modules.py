@@ -138,9 +138,6 @@ DTK6_MODULES: list[ModuleDefinition] = [
   },
 ]
 
-# gxde-desktop-base is reference-only here. It contains GXDE OS distribution
-# configuration for APT, GRUB, systemd, and os-release, so installing it would
-# overwrite host-distribution policy rather than just install the desktop.
 INFRA_MODULES: list[ModuleDefinition] = [
   {
     # GXDE's Go components use a curated GOPATH rooted at
@@ -163,6 +160,15 @@ INFRA_MODULES: list[ModuleDefinition] = [
   {
     "repo_name": "gxde-api",
     "display_name": "GXDE API",
+    "branch": "master",
+  },
+  {
+    # Besides distribution configuration, this package provides the desktop
+    # identity files required to build gxde-desktop-schemas and later daemons.
+    # Keep it immediately before its first consumer; Infra is installed one
+    # module at a time, so APT can satisfy the following Build-Depends.
+    "repo_name": "gxde-desktop-base",
+    "display_name": "GXDE Desktop Base",
     "branch": "master",
   },
   {

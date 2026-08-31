@@ -162,9 +162,9 @@ def _initialize_legacy_resume_state(
     ("dtk6", DTK6_MODULES, True),
     ("dtk2-qt6", DTK2_QT6_MODULES, True),
     ("infra", INFRA_MODULES, True),
-    ("core", CORE_MODULES, False),
-    ("x11-session", X11_SESSION_MODULES, False),
-    ("wayland-session", WAYLAND_SESSION_MODULES, False),
+    ("core", CORE_MODULES, True),
+    ("x11-session", X11_SESSION_MODULES, True),
+    ("wayland-session", WAYLAND_SESSION_MODULES, True),
   )
   ordered_modules = [
     (archive_name, module, install_incrementally)
@@ -555,10 +555,9 @@ def install_module_stage(
       _mark_step_completed(build_step)
 
     if install_incrementally:
-      # DTK repositories consume freshly built development packages from
-      # earlier repositories in the same stage. Install each repository's
-      # complete artifact set before building the next one, while keeping one
-      # archive directory for the whole stage.
+      # Later repositories can consume development packages built earlier in
+      # the same stage. Install each repository's complete artifact set before
+      # building the next one, while keeping one archive for the whole stage.
       if install_completed:
         print(
           tr("Resume: skipping completed repository installation: ")
@@ -637,7 +636,12 @@ def install_infra() -> None:
   )
 
 def install_core() -> None:
-  install_module_stage(tr("GXDE core"), "core", CORE_MODULES)
+  install_module_stage(
+    tr("GXDE core"),
+    "core",
+    CORE_MODULES,
+    install_incrementally=True,
+  )
 
 def install_named_packages(
     package_names: tuple[str, ...],
@@ -715,12 +719,14 @@ def install_session_components() -> None:
       tr("GXDE X11 session and compositor"),
       "x11-session",
       X11_SESSION_MODULES,
+      install_incrementally=True,
     )
   if session_choice in {2, 3}:
     install_module_stage(
       tr("GXDE Wayland session and compositor"),
       "wayland-session",
       WAYLAND_SESSION_MODULES,
+      install_incrementally=True,
     )
 
   saved_apm_choice = _get_saved_choice("install_apm")

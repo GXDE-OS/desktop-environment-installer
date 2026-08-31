@@ -222,7 +222,13 @@ class InstallerTest(unittest.TestCase):
 
     self.assertEqual(2, stage_mock.call_count)
     self.assertEqual("x11-session", stage_mock.call_args_list[0].args[1])
+    self.assertTrue(
+      stage_mock.call_args_list[0].kwargs["install_incrementally"]
+    )
     self.assertEqual("wayland-session", stage_mock.call_args_list[1].args[1])
+    self.assertTrue(
+      stage_mock.call_args_list[1].kwargs["install_incrementally"]
+    )
     packages_mock.assert_called_once_with(("apm",), "APM")
 
   def test_optional_packages_use_the_detected_manager_adapter(self) -> None:
@@ -364,6 +370,17 @@ class InstallerTest(unittest.TestCase):
       infra_repositories.index("gxde-api"),
     )
 
+  def test_desktop_base_precedes_desktop_schemas(self) -> None:
+    infra_repositories = [
+      module["repo_name"]
+      for module in installer.INFRA_MODULES
+    ]
+
+    self.assertLess(
+      infra_repositories.index("gxde-desktop-base"),
+      infra_repositories.index("gxde-desktop-schemas"),
+    )
+
   def test_infra_installs_modules_incrementally(self) -> None:
     with patch.object(installer, "install_module_stage") as install_stage:
       installer.install_infra()
@@ -372,6 +389,17 @@ class InstallerTest(unittest.TestCase):
       installer.tr("GXDE infrastructure dependencies"),
       "infra",
       installer.INFRA_MODULES,
+      install_incrementally=True,
+    )
+
+  def test_core_installs_modules_incrementally(self) -> None:
+    with patch.object(installer, "install_module_stage") as install_stage:
+      installer.install_core()
+
+    install_stage.assert_called_once_with(
+      installer.tr("GXDE core"),
+      "core",
+      installer.CORE_MODULES,
       install_incrementally=True,
     )
 
