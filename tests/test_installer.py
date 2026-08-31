@@ -392,6 +392,17 @@ class InstallerTest(unittest.TestCase):
       infra_repositories.index("gxde-desktop-base"),
     )
 
+  def test_qt6_dbus_framework_precedes_network_utils(self) -> None:
+    infra_repositories = [
+      module["repo_name"]
+      for module in installer.INFRA_MODULES
+    ]
+
+    self.assertLess(
+      infra_repositories.index("dframework-dbus-qt6"),
+      infra_repositories.index("gxde-network-utils-qt6"),
+    )
+
   def test_infra_installs_modules_incrementally(self) -> None:
     with patch.object(installer, "install_module_stage") as install_stage:
       installer.install_infra()

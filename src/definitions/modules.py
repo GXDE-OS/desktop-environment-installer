@@ -184,6 +184,13 @@ INFRA_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    # Qt6 desktop components consume the development package produced here,
+    # beginning with gxde-network-utils-qt6.
+    "repo_name": "dframework-dbus-qt6",
+    "display_name": "Deepin D-Bus Framework (Qt6)",
+    "branch": "main",
+  },
+  {
     "repo_name": "gxde-network-utils-qt6",
     "display_name": "GXDE Network Utils (Qt6 port)",
     "branch": "master",
