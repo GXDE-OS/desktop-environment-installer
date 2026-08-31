@@ -24,16 +24,22 @@ BUNDLED_PATCHES = PROJECT_ROOT / "res/installation_scripts/patches"
 
 
 class BuildScriptTest(unittest.TestCase):
-  def apply_compatibility(self, candidate: str) -> str:
+  def apply_compatibility(
+      self,
+      candidate: str,
+      control_contents: str | None = None,
+  ) -> str:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)
       debian_directory = repository / "debian"
       debian_directory.mkdir()
       control = debian_directory / "control"
       control.write_text(
-        "Source: test\n"
-        "Build-Depends: qt6-wayland-dev, qt6-wayland-dev-tools, "
-        "treeland-protocols\n",
+        control_contents or (
+          "Source: test\n"
+          "Build-Depends: qt6-wayland-dev, qt6-wayland-dev-tools, "
+          "treeland-protocols\n"
+        ),
         encoding="utf-8",
       )
 
@@ -65,6 +71,43 @@ class BuildScriptTest(unittest.TestCase):
 
     self.assertIn("qt6-wayland-dev-tools", control)
 
+  def test_removes_complete_multiline_dependency_entry(self) -> None:
+    control = self.apply_compatibility(
+      "(none)",
+      "Source: xdg-desktop-portal-gxde\n"
+      "Build-Depends:\n"
+      "  qt6-wayland-private-dev,\n"
+      "  qt6-wayland-dev-tools,\n"
+      "  libpipewire-0.3-dev,\n"
+      "Standards-Version: 4.5.0\n",
+    )
+
+    self.assertNotIn("qt6-wayland-dev-tools", control)
+    self.assertNotIn("\n  \n", control)
+    self.assertIn(
+      "  qt6-wayland-private-dev,\n"
+      "  libpipewire-0.3-dev,\n",
+      control,
+    )
+
+  def test_repairs_checkout_corrupted_by_older_installer(self) -> None:
+    control = self.apply_compatibility(
+      "(none)",
+      "Source: xdg-desktop-portal-gxde\n"
+      "Build-Depends:\n"
+      "  qt6-wayland-private-dev,\n"
+      "  \n"
+      "  libpipewire-0.3-dev,\n"
+      "Standards-Version: 4.5.0\n",
+    )
+
+    self.assertNotIn("\n  \n", control)
+    self.assertIn(
+      "  qt6-wayland-private-dev,\n"
+      "  libpipewire-0.3-dev,\n",
+      control,
+    )
+
   def test_builds_legacy_cgo_bindings_as_gnu17(self) -> None:
     result = subprocess.run(
       [
@@ -82,11 +125,10 @@ class BuildScriptTest(unittest.TestCase):
 
     self.assertTrue(result.stdout.endswith("-O2 -std=gnu23 -std=gnu17"))
 
-  def test_normalizes_gxde_desktop_base_maintainers(self) -> None:
+  def test_normalizes_comma_separated_maintainers(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)
       (repository / "debian").mkdir()
-      shutil.copytree(BUNDLED_PATCHES, repository / "patches")
       control = repository / "debian/control"
       control.write_text(
         "Source: gxde-desktop-base\n"
@@ -99,18 +141,13 @@ class BuildScriptTest(unittest.TestCase):
         " debhelper-compat (= 12),\n",
         encoding="utf-8",
       )
-      subprocess.run(
-        ["git", "init", "--quiet"],
-        cwd=repository,
-        check=True,
-      )
 
       result = subprocess.run(
         [
           "bash",
           "-c",
           'source "$1"; PROJ_ROOT="$2"; '
-          'PKG_NAME="gxde-desktop-base"; apply_source_compatibility',
+          "normalize_debian_maintainer_metadata",
           "build-script-test",
           str(BUILD_SCRIPT),
           str(repository),
@@ -129,6 +166,47 @@ class BuildScriptTest(unittest.TestCase):
         "Uploaders: shenmo <shenmo@spark-app.store>\n",
         updated_control,
       )
+
+  def test_merges_additional_maintainers_into_existing_uploaders(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      control = repository / "debian/control"
+      control.write_text(
+        "Source: gxde-default-settings\n"
+        "Maintainer: gfdgd xi <3025613752@qq.com>, "
+        "sysdev <sysdev@deepin.com>\n"
+        "Uploaders: Existing Person <existing@example.com>\n"
+        "Build-Depends: debhelper\n",
+        encoding="utf-8",
+      )
+
+      subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          "normalize_debian_maintainer_metadata",
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      updated_control = control.read_text(encoding="utf-8")
+      self.assertIn(
+        "Maintainer: gfdgd xi <3025613752@qq.com>\n",
+        updated_control,
+      )
+      self.assertIn(
+        "Uploaders: sysdev <sysdev@deepin.com>, "
+        "Existing Person <existing@example.com>\n",
+        updated_control,
+      )
+      self.assertEqual(updated_control.count("Uploaders:"), 1)
 
   def test_imports_qt_core_private_for_qt6_dbus_framework(self) -> None:
     with TemporaryDirectory() as temporary_directory:

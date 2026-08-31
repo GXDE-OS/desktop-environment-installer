@@ -160,25 +160,72 @@ apply_bundled_source_patch() {
     fi
 }
 
+# Debian allows exactly one address in Maintainer; additional maintainers
+# belong in Uploaders.  Some GXDE source packages put a comma-separated list
+# in Maintainer, which modern dpkg-source rejects before the build starts.
+normalize_debian_maintainer_metadata() {
+    local control_file="$PROJ_ROOT/debian/control"
+    local maintainer_line
+    local maintainers
+    local primary
+    local additional
+    local has_uploaders=false
+    local temporary_file
+
+    maintainer_line="$(grep -m1 '^Maintainer:' "$control_file")"
+    maintainers="${maintainer_line#Maintainer:}"
+    if [[ "$maintainers" != *,* ]]; then
+        return
+    fi
+
+    primary="${maintainers%%,*}"
+    additional="${maintainers#*,}"
+    primary="$(printf '%s\n' "$primary" \
+        | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s/[[:space:]]*</ </g')"
+    additional="$(printf '%s\n' "$additional" \
+        | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s/[[:space:]]*</ </g')"
+    grep -q '^Uploaders:' "$control_file" && has_uploaders=true
+
+    temporary_file="$(mktemp "$PROJ_ROOT/debian/control.XXXXXX")" || {
+        echo "Error: failed to create a temporary Debian control file."
+        return 1
+    }
+    if ! awk \
+        -v primary="$primary" \
+        -v additional="$additional" \
+        -v has_uploaders="$has_uploaders" '
+          /^Maintainer:/ {
+            print "Maintainer: " primary
+            if (has_uploaders != "true") {
+              print "Uploaders: " additional
+            }
+            next
+          }
+          /^Uploaders:/ && has_uploaders == "true" {
+            sub(/^Uploaders:[[:space:]]*/, "")
+            print "Uploaders: " additional ", " $0
+            next
+          }
+          { print }
+        ' "$control_file" > "$temporary_file"; then
+        rm -f "$temporary_file"
+        echo "Error: failed to normalize Debian maintainer metadata."
+        return 1
+    fi
+    chmod --reference="$control_file" "$temporary_file"
+    mv -f "$temporary_file" "$control_file"
+    echo "Source compatibility: normalized Debian maintainer metadata."
+}
+
 # Apply source-level compatibility fixes bundled with the installer. Patches
 # are scoped to their source package and skipped once the fixed code is
 # present, so updated repositories are not rewritten.
 apply_source_compatibility() {
+    if ! normalize_debian_maintainer_metadata; then
+        exit 1
+    fi
+
     case "$PKG_NAME" in
-        gxde-desktop-base)
-            if grep -Fxq \
-                'Maintainer: gfdgd xi <3025613752@qq.com>' \
-                "$PROJ_ROOT/debian/control" \
-                && grep -Fxq \
-                'Uploaders: shenmo <shenmo@spark-app.store>' \
-                "$PROJ_ROOT/debian/control"; then
-                echo "Source compatibility: GXDE Desktop Base maintainer metadata is already valid."
-            else
-                apply_bundled_source_patch \
-                    "GXDE Desktop Base maintainer metadata" \
-                    "$PROJ_ROOT/patches/gxde-desktop-base-maintainers.patch"
-            fi
-            ;;
         libdframeworkdbus-qt6)
             if grep -Fq \
                 'find_package(Qt6CorePrivate REQUIRED)' \
@@ -324,6 +371,16 @@ apply_apt_build_dep_compatibility() {
     local package="qt6-wayland-dev-tools"
     local candidate
 
+    # Older installer runs removed a dependency name from a continuation line
+    # but left its indentation behind.  Resume reuses that modified checkout,
+    # so repair these invalid whitespace-only continuation lines before the
+    # dependency-presence check below.  Valid stanza separators are empty
+    # lines and therefore are not affected.
+    if grep -Eq '^[[:space:]]+$' "$PROJ_ROOT/debian/control"; then
+        echo "APT compatibility: repairing invalid blank continuation lines in debian/control."
+        sed -i -E '/^[[:space:]]+$/d' "$PROJ_ROOT/debian/control"
+    fi
+
     if ! grep -Eq "(^|[[:space:],])${package}([[:space:],]|$)" \
         "$PROJ_ROOT/debian/control"; then
         return
@@ -336,9 +393,22 @@ apply_apt_build_dep_compatibility() {
     fi
 
     echo "APT compatibility: removing unavailable build dependency $package."
-    sed -i -E \
-        "s/(^|[[:space:]])${package}([[:space:]]*,[[:space:]]*)?/\\1/" \
-        "$PROJ_ROOT/debian/control"
+    if grep -Eq \
+        "^[[:space:]]*${package}[[:space:]]*,?[[:space:]]*$" \
+        "$PROJ_ROOT/debian/control"; then
+        # In a multi-line Build-Depends field, leaving an indented blank line
+        # terminates the field.  The next dependency is then parsed as an
+        # orphan continuation line.  Remove the complete dependency line.
+        sed -i -E \
+            "/^[[:space:]]*${package}[[:space:]]*,?[[:space:]]*$/d" \
+            "$PROJ_ROOT/debian/control"
+    else
+        # Also support compact Build-Depends fields containing several
+        # dependencies on the same line.
+        sed -i -E \
+            "s/(^|[[:space:]])${package}([[:space:]]*,[[:space:]]*)?/\\1/" \
+            "$PROJ_ROOT/debian/control"
+    fi
 }
 
 # Install build dependencies from Build-Depends in debian/control.
