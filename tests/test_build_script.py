@@ -8,6 +8,7 @@
 # or (at your option) any later version.
 
 from pathlib import Path
+import shutil
 import subprocess
 from tempfile import TemporaryDirectory
 import unittest
@@ -15,6 +16,10 @@ import unittest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 BUILD_SCRIPT = PROJECT_ROOT / "res/installation_scripts/gxde_build_deb.sh"
+BUNDLED_XCB_HEADERS = (
+  PROJECT_ROOT
+  / "res/installation_scripts/compat/qt6-xcb-private-headers/6.10.2"
+)
 
 
 class BuildScriptTest(unittest.TestCase):
@@ -58,6 +63,39 @@ class BuildScriptTest(unittest.TestCase):
     control = self.apply_compatibility("6.9.2-1")
 
     self.assertIn("qt6-wayland-dev-tools", control)
+
+  def test_installs_qt_6_10_xcb_private_headers(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      bundled_headers = (
+        repository / "compat/qt6-xcb-private-headers/6.10.2"
+      )
+      shutil.copytree(BUNDLED_XCB_HEADERS, bundled_headers)
+
+      subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          'PKG_NAME="dde-qt6platform-plugins"; '
+          "apply_source_compatibility",
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      installed_headers = (
+        repository / "xcb/libqt6xcbqpa-dev/6.10.2"
+      )
+      self.assertEqual(48, len(list(installed_headers.rglob("*.h"))))
+      self.assertEqual(
+        (BUNDLED_XCB_HEADERS / "qxcbconnection.h").read_bytes(),
+        (installed_headers / "qxcbconnection.h").read_bytes(),
+      )
 
 
 if __name__ == "__main__":

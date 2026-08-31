@@ -165,6 +165,24 @@ apply_bundled_source_patch() {
 # present, so updated repositories are not rewritten.
 apply_source_compatibility() {
     case "$PKG_NAME" in
+        dde-qt6platform-plugins)
+            local bundled_xcb_headers="$PROJ_ROOT/compat/qt6-xcb-private-headers/6.10.2"
+            local source_xcb_headers="$PROJ_ROOT/xcb/libqt6xcbqpa-dev/6.10.2"
+
+            if [[ -f "$source_xcb_headers/qxcbconnection.h" ]]; then
+                echo "Source compatibility: Qt 6.10.2 XCB private headers are already available."
+            elif [[ ! -f "$bundled_xcb_headers/qxcbconnection.h" ]]; then
+                echo "Error: bundled Qt 6.10.2 XCB private headers were not found."
+                exit 1
+            else
+                echo "Source compatibility: installing Qt 6.10.2 XCB private headers."
+                mkdir -p "$(dirname "$source_xcb_headers")"
+                if ! cp -a "$bundled_xcb_headers" "$source_xcb_headers"; then
+                    echo "Error: failed to install Qt 6.10.2 XCB private headers."
+                    exit 1
+                fi
+            fi
+            ;;
         dtk6widget)
             if grep -q \
                 'D_DECLARE_PRIVATE_MEMBER(QDragManager_m_platformDrag_tag' \

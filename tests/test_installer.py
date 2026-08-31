@@ -566,6 +566,17 @@ class InstallerTest(unittest.TestCase):
           ).read_bytes(),
           copied_patch.read_bytes(),
         )
+      bundled_xcb_headers = (
+        repo_dest
+        / "compat"
+        / "qt6-xcb-private-headers"
+        / "6.10.2"
+      )
+      self.assertEqual(
+        48,
+        len(list(bundled_xcb_headers.rglob("*.h"))),
+      )
+      self.assertTrue((bundled_xcb_headers / "qxcbconnection.h").is_file())
       fork_mock.assert_called_once_with()
       waitpid_mock.assert_called_once_with(1234, 0)
       git_clone_mock.assert_called_once_with(
