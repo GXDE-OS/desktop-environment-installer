@@ -1,0 +1,29 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 91cc9da..5c5312a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -21,6 +21,9 @@ option(ENABLE_COV "Enable code coverage" OFF)
+ if(PROJECT_VERSION_MAJOR EQUAL 6)
+   set(VERSION_SUFFIX 6)
+   find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core)
++  if(Qt6_VERSION VERSION_GREATER_EQUAL 6.10)
++    find_package(Qt6 COMPONENTS CorePrivate GuiPrivate WidgetsPrivate REQUIRED)
++  endif()
+ else()
+   set(VERSION_SUFFIX)
+   find_package(QT NAMES Qt5 REQUIRED COMPONENTS Core)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 5c5312a..7c2b696 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -21,7 +21,7 @@ option(ENABLE_COV "Enable code coverage" OFF)
+ if(PROJECT_VERSION_MAJOR EQUAL 6)
+   set(VERSION_SUFFIX 6)
+   find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core)
+-  if(Qt6_VERSION VERSION_GREATER_EQUAL 6.10)
++  if(QT_VERSION VERSION_GREATER_EQUAL 6.10)
+     find_package(Qt6 COMPONENTS CorePrivate GuiPrivate WidgetsPrivate REQUIRED)
+   endif()
+ else()
+

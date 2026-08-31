@@ -537,18 +537,20 @@ class InstallerTest(unittest.TestCase):
         (installer.INSTALLATION_SCRIPTS_DIR / "gxde_build_deb.sh").read_bytes(),
         copied_script.read_bytes(),
       )
-      copied_patch = (
-        repo_dest / "patches" / "dtk6widget-qt-6.10.patch"
-      )
-      self.assertTrue(copied_patch.is_file())
-      self.assertEqual(
-        (
-          installer.INSTALLATION_SCRIPTS_DIR
-          / "patches"
-          / "dtk6widget-qt-6.10.patch"
-        ).read_bytes(),
-        copied_patch.read_bytes(),
-      )
+      for patch_name in (
+        "dtk6widget-qt-6.10.patch",
+        "qt6integration-qt-6.10-private-targets.patch",
+      ):
+        copied_patch = repo_dest / "patches" / patch_name
+        self.assertTrue(copied_patch.is_file())
+        self.assertEqual(
+          (
+            installer.INSTALLATION_SCRIPTS_DIR
+            / "patches"
+            / patch_name
+          ).read_bytes(),
+          copied_patch.read_bytes(),
+        )
       fork_mock.assert_called_once_with()
       waitpid_mock.assert_called_once_with(1234, 0)
       git_clone_mock.assert_called_once_with(
