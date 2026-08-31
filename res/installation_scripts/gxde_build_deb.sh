@@ -136,6 +136,34 @@ check_toolchains() {
     echo "Basic toolchain check passed."
 }
 
+# Drop build dependencies that were retired by the active APT distribution.
+#
+# Qt 6.10 stopped publishing qt6-wayland-dev-tools separately.  Ubuntu 26.04
+# ships qt6-wayland-dev and qt6-wayland-private-dev without that package, but
+# older DTK packaging still names it explicitly.  Keep the dependency on
+# distributions that provide it, and only adjust the cloned source tree when
+# APT reports that no installation candidate exists.
+apply_apt_build_dep_compatibility() {
+    local package="qt6-wayland-dev-tools"
+    local candidate
+
+    if ! grep -Eq "(^|[[:space:],])${package}([[:space:],]|$)" \
+        "$PROJ_ROOT/debian/control"; then
+        return
+    fi
+
+    candidate="$(apt-cache policy "$package" 2>/dev/null \
+        | awk '/^[[:space:]]*Candidate:/ { print $2; exit }')"
+    if [[ -n "$candidate" && "$candidate" != "(none)" ]]; then
+        return
+    fi
+
+    echo "APT compatibility: removing unavailable build dependency $package."
+    sed -i -E \
+        "s/(^|[[:space:]])${package}([[:space:]]*,[[:space:]]*)?/\\1/" \
+        "$PROJ_ROOT/debian/control"
+}
+
 # Install build dependencies from Build-Depends in debian/control.
 auto_install_deps() {
     if [[ "$INSTALL_DEPS" != true ]]; then
@@ -146,6 +174,7 @@ auto_install_deps() {
         echo "Error: failed to update package indexes."
         exit 1
     fi
+    apply_apt_build_dep_compatibility
 
     echo ""
     echo ">>> Note: apt is running without -y. Carefully review the packages that"
@@ -233,14 +262,20 @@ exec_build() {
 }
 
 # Main entry point.
-parse_args "$@"
-detect_project
+main() {
+    parse_args "$@"
+    detect_project
 
-if [[ "$ACT_CLEANUPS" == true ]]; then
-    exec_clean
-    exit 0
+    if [[ "$ACT_CLEANUPS" == true ]]; then
+        exec_clean
+        return
+    fi
+
+    check_toolchains
+    auto_install_deps
+    exec_build
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
 fi
-
-check_toolchains
-auto_install_deps
-exec_build
