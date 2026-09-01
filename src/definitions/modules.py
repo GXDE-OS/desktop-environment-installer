@@ -504,6 +504,11 @@ WAYLAND_SESSION_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    "repo_name": "dde-services",
+    "display_name": "GXDE Services Framework",
+    "branch": "master",
+  },
+  {
     "repo_name": "dde-grand-search",
     "display_name": "GXDE Grand Search",
     "branch": "master",
