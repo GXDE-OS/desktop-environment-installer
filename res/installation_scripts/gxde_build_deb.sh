@@ -302,11 +302,11 @@ apply_source_compatibility() {
             # gnome`; no library source or binary package layout is changed.
             local modern_rules="$PROJ_ROOT/compat/libgnome-keyring/debian-rules"
 
-            if grep -Fq 'dh $@ --with gnome' "$PROJ_ROOT/debian/rules"; then
-                echo "Source compatibility: modern GNOME debhelper rules are already configured."
-            elif [[ ! -f "$modern_rules" ]]; then
+            if [[ ! -f "$modern_rules" ]]; then
                 echo "Error: bundled modern libgnome-keyring Debian rules were not found."
                 exit 1
+            elif cmp -s "$modern_rules" "$PROJ_ROOT/debian/rules"; then
+                echo "Source compatibility: modern GNOME debhelper rules are already configured."
             else
                 echo "Source compatibility: replacing retired GNOME CDBS rules with debhelper."
                 if ! install -m 0755 "$modern_rules" \

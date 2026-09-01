@@ -355,6 +355,7 @@ class BuildScriptTest(unittest.TestCase):
         encoding="utf-8",
       )
       self.assertIn("dh $@ --with gnome\n", updated_rules)
+      self.assertIn("export GPGRT_CONFIG ?= gpgrt-config\n", updated_rules)
       self.assertNotIn("/usr/share/cdbs", updated_rules)
       self.assertNotIn("cdbs (>=", updated_control)
       self.assertNotIn("dh-autoreconf", updated_control)

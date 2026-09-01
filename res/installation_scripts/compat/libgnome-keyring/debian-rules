@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 
 export DEB_LDFLAGS_MAINT_APPEND := -Wl,-O1 -Wl,-z,defs -Wl,--as-needed
+export GPGRT_CONFIG ?= gpgrt-config
 DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
 
 %:
