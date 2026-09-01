@@ -387,18 +387,31 @@ apply_source_compatibility() {
                     "$PROJ_ROOT/patches/gxde-dock-cmake-pkg-config-scope.patch"
             fi
 
-            if grep -Fq \
-                'find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent DBus Gui GuiPrivate)' \
-                "$dock_frame_cmake" \
-                && grep -Fq \
-                'find_package(Qt6 REQUIRED COMPONENTS Widgets Svg DBus Gui GuiPrivate)' \
-                "$dock_tray_cmake"; then
-                echo "Source compatibility: GXDE Dock explicitly imports the Qt GUI private target."
-            else
-                apply_bundled_source_patch \
-                    "GXDE Dock Qt GUI private target" \
-                    "$PROJ_ROOT/patches/gxde-dock-qt6-gui-private.patch"
-            fi
+            local qt_gui_private_cmake
+            for qt_gui_private_cmake in "$dock_frame_cmake" "$dock_tray_cmake"; do
+                if grep -Fq 'find_package(Qt6GuiPrivate REQUIRED)' \
+                    "$qt_gui_private_cmake"; then
+                    continue
+                fi
+
+                if ! grep -Eq \
+                    '^[[:space:]]*find_package\(Qt6[[:space:]].*COMPONENTS' \
+                    "$qt_gui_private_cmake"; then
+                    echo "Error: cannot find the Qt 6 component declaration in $qt_gui_private_cmake."
+                    exit 1
+                fi
+
+                if ! sed -i \
+                    '/^[[:space:]]*find_package(Qt6[[:space:]].*COMPONENTS/a\
+if(NOT TARGET Qt6::GuiPrivate)\
+    find_package(Qt6GuiPrivate REQUIRED)\
+endif()' \
+                    "$qt_gui_private_cmake"; then
+                    echo "Error: failed to import the Qt GUI private target in $qt_gui_private_cmake."
+                    exit 1
+                fi
+            done
+            echo "Source compatibility: GXDE Dock explicitly imports the Qt GUI private target."
             ;;
         libdframeworkdbus-qt6)
             if grep -Fq \

@@ -580,14 +580,14 @@ class BuildScriptTest(unittest.TestCase):
       frame_cmake.write_text(
         "# Find the library\n"
         "find_package(PkgConfig REQUIRED)\n"
-        "find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent DBus Gui)\n"
+        "find_package(Qt6 REQUIRED COMPONENTS DBus Gui Concurrent Widgets)\n"
         "find_package(LayerShellQt REQUIRED)\n",
         encoding="utf-8",
       )
       tray_cmake = tray_directory / "CMakeLists.txt"
       tray_cmake.write_text(
         "find_package(PkgConfig REQUIRED)\n"
-        "find_package(Qt6 REQUIRED COMPONENTS Widgets Svg DBus Gui)\n"
+        "find_package(Qt6 REQUIRED COMPONENTS Gui DBus Svg Widgets)\n"
         "pkg_check_modules(dtk2widget REQUIRED dtk2widget)\n",
         encoding="utf-8",
       )
@@ -620,11 +620,11 @@ class BuildScriptTest(unittest.TestCase):
         ),
       )
       self.assertIn(
-        "find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent DBus Gui GuiPrivate)",
+        "find_package(Qt6GuiPrivate REQUIRED)",
         frame_cmake.read_text(encoding="utf-8"),
       )
       self.assertIn(
-        "find_package(Qt6 REQUIRED COMPONENTS Widgets Svg DBus Gui GuiPrivate)",
+        "find_package(Qt6GuiPrivate REQUIRED)",
         tray_cmake.read_text(encoding="utf-8"),
       )
       resumed_run = subprocess.run(
@@ -648,6 +648,18 @@ class BuildScriptTest(unittest.TestCase):
       self.assertIn(
         "GXDE Dock explicitly imports the Qt GUI private target",
         resumed_run.stdout,
+      )
+      self.assertEqual(
+        1,
+        frame_cmake.read_text(encoding="utf-8").count(
+          "find_package(Qt6GuiPrivate REQUIRED)"
+        ),
+      )
+      self.assertEqual(
+        1,
+        tray_cmake.read_text(encoding="utf-8").count(
+          "find_package(Qt6GuiPrivate REQUIRED)"
+        ),
       )
 
   def test_moves_dtk2widget_moc_include_outside_namespace(self) -> None:
