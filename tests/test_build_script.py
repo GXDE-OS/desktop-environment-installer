@@ -1093,6 +1093,72 @@ class BuildScriptTest(unittest.TestCase):
         resumed_run.stdout,
       )
 
+  def test_screensaver_imports_qt_gui_private_package(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      (repository / "debian/control").write_text(
+        "Source: deepin-screensaver\n"
+        "Build-Depends: debhelper (>= 11), qt6-base-private-dev\n\n"
+        "Package: deepin-screensaver\n"
+        "Architecture: any\n"
+        "Depends: ${misc:Depends}\n",
+        encoding="utf-8",
+      )
+      source_directory = repository / "src"
+      source_directory.mkdir()
+      cmake_file = source_directory / "CMakeLists.txt"
+      cmake_file.write_bytes(
+        b"set(qt_required_components Core Gui Widgets DBus Quick)\r\n\r\n"
+        b"if (QT_DESIRED_VERSION MATCHES 6)\r\n"
+        b"#     list(APPEND qt_required_components GuiPrivate)\r\n"
+        b"else()\r\n"
+        b"    list(APPEND qt_required_components X11Extras)\r\n"
+        b"endif()\r\n"
+        b"\r\n"
+        b"find_package(Qt${QT_DESIRED_VERSION} REQUIRED COMPONENTS "
+        b"${qt_required_components})\r\n"
+      )
+      shutil.copytree(BUNDLED_PATCHES, repository / "patches")
+      subprocess.run(["git", "init", "--quiet"], cwd=repository, check=True)
+
+      command = [
+        "bash",
+        "-c",
+        'source "$1"; PROJ_ROOT="$2"; '
+        'PKG_NAME="deepin-screensaver"; '
+        "apply_source_compatibility",
+        "build-script-test",
+        str(BUILD_SCRIPT),
+        str(repository),
+      ]
+      for _ in range(2):
+        result = subprocess.run(
+          command,
+          check=False,
+          capture_output=True,
+          text=True,
+        )
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+      patched_cmake = cmake_file.read_text(encoding="utf-8")
+      self.assertEqual(
+        1,
+        patched_cmake.count(
+          "find_package(Qt6GuiPrivate REQUIRED)"
+        ),
+      )
+      self.assertIn(
+        "#     list(APPEND qt_required_components GuiPrivate)",
+        patched_cmake,
+      )
+      self.assertIn(
+        "if (QT_DESIRED_VERSION MATCHES 6 AND NOT TARGET "
+        "Qt6::GuiPrivate)",
+        patched_cmake,
+      )
+      self.assertIn(b"\r\n", cmake_file.read_bytes())
+
   def test_control_center_imports_qt_gui_private_target(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)

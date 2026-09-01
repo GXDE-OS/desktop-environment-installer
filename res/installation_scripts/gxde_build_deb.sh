@@ -757,6 +757,34 @@ endif()\
                     "$PROJ_ROOT/patches/gxde-file-manager-integration-qt6.patch"
             fi
             ;;
+        deepin-screensaver)
+            local screensaver_cmake="$PROJ_ROOT/src/CMakeLists.txt"
+
+            # The Qt 6 build already links GuiPrivate.  Import its private
+            # package explicitly on Qt versions where loading Gui alone does
+            # not create that target; older Qt packages already provide it.
+            if grep -Fq 'find_package(Qt6GuiPrivate REQUIRED)' \
+                "$screensaver_cmake"; then
+                echo "Source compatibility: GXDE Screensaver already imports the Qt GUI private target."
+            else
+                echo "Source compatibility: importing the Qt GUI private target required by GXDE Screensaver."
+                if ! sed -i \
+                    '/^[[:space:]]*find_package(Qt${QT_DESIRED_VERSION} REQUIRED COMPONENTS ${qt_required_components})[[:space:]]*$/a\
+if (QT_DESIRED_VERSION MATCHES 6 AND NOT TARGET Qt6::GuiPrivate)\
+    find_package(Qt6GuiPrivate REQUIRED)\
+endif()' \
+                    "$screensaver_cmake"; then
+                    echo "Error: failed to import the Qt GUI private target for GXDE Screensaver." >&2
+                    exit 1
+                fi
+
+                if ! grep -Fq 'find_package(Qt6GuiPrivate REQUIRED)' \
+                    "$screensaver_cmake"; then
+                    echo "Error: GXDE Screensaver Qt GUI private target compatibility patch does not apply cleanly." >&2
+                    exit 1
+                fi
+            fi
+            ;;
         gxde-wlcom)
             local wlroots_libinput_switch="$PROJ_ROOT/subprojects/wlroots/backend/libinput/switch.c"
 
