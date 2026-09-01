@@ -108,6 +108,45 @@ class BuildScriptTest(unittest.TestCase):
       control,
     )
 
+  def test_preserves_whitespace_only_package_separator(self) -> None:
+    control = self.apply_compatibility(
+      "(none)",
+      "Source: test\n"
+      "Build-Depends: debhelper\n"
+      "\n"
+      "Package: first\n"
+      "Architecture: any\n"
+      "Description: first package\n"
+      " \n"
+      "Package: second\n"
+      "Architecture: any\n"
+      "Description: second package\n",
+    )
+
+    self.assertIn(
+      "Description: first package\n\nPackage: second\n",
+      control,
+    )
+
+  def test_repairs_package_paragraph_merged_by_older_installer(self) -> None:
+    control = self.apply_compatibility(
+      "(none)",
+      "Source: test\n"
+      "Build-Depends: debhelper\n"
+      "\n"
+      "Package: first\n"
+      "Architecture: any\n"
+      "Description: first package\n"
+      "Package: second\n"
+      "Architecture: any\n"
+      "Description: second package\n",
+    )
+
+    self.assertIn(
+      "Description: first package\n\nPackage: second\n",
+      control,
+    )
+
   def test_builds_legacy_cgo_bindings_as_gnu17(self) -> None:
     result = subprocess.run(
       [

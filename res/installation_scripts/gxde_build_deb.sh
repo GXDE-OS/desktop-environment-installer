@@ -280,6 +280,93 @@ normalize_debian_maintainer_metadata() {
     echo "Source compatibility: normalized Debian maintainer metadata."
 }
 
+# Normalize blank lines without losing Debian control paragraph boundaries.
+# Older installer versions deleted every whitespace-only line while repairing
+# a removed Build-Depends entry. Some repositories use such a line between
+# binary package paragraphs, so that behavior could merge two Package fields.
+repair_debian_control_layout() {
+    local control_file="$PROJ_ROOT/debian/control"
+    local temporary_file
+
+    if [[ ! -f "$control_file" ]]; then
+        return
+    fi
+
+    temporary_file="$(mktemp "$PROJ_ROOT/debian/control.XXXXXX")" || {
+        echo "Error: failed to create a temporary Debian control file."
+        return 1
+    }
+    if ! awk '
+        { lines[NR] = $0 }
+        END {
+            in_build_depends = 0
+            paragraph_has_fields = 0
+
+            for (line_number = 1; line_number <= NR; line_number++) {
+                line = lines[line_number]
+
+                if (line ~ /^[[:space:]]*$/) {
+                    next_line = line_number + 1
+                    while (next_line <= NR \
+                           && lines[next_line] ~ /^[[:space:]]*$/) {
+                        next_line++
+                    }
+
+                    # A blank line between two Build-Depends continuation
+                    # entries is damage left by an older dependency removal.
+                    if (in_build_depends \
+                        && next_line <= NR \
+                        && lines[next_line] ~ /^[[:space:]]+[^[:space:]]/) {
+                        continue
+                    }
+
+                    print ""
+                    in_build_depends = 0
+                    paragraph_has_fields = 0
+                    continue
+                }
+
+                # Package must begin a binary paragraph. Reinsert a separator
+                # when an older run merged it into the preceding paragraph.
+                if (line ~ /^Package:[[:space:]]*/ && paragraph_has_fields) {
+                    print ""
+                    in_build_depends = 0
+                    paragraph_has_fields = 0
+                }
+
+                print line
+
+                if (line ~ /^Build-Depends(-Arch|-Indep)?:/) {
+                    in_build_depends = 1
+                } else if (in_build_depends \
+                           && line !~ /^[[:space:]]/) {
+                    in_build_depends = 0
+                }
+
+                if (line !~ /^[[:space:]]/) {
+                    paragraph_has_fields = 1
+                }
+            }
+        }
+    ' "$control_file" > "$temporary_file"; then
+        rm -f "$temporary_file"
+        echo "Error: failed to normalize the Debian control layout."
+        return 1
+    fi
+
+    if cmp -s "$temporary_file" "$control_file"; then
+        rm -f "$temporary_file"
+        return
+    fi
+
+    echo "Debian control compatibility: repairing blank lines and package paragraph boundaries."
+    if ! mv "$temporary_file" "$control_file"; then
+        rm -f "$temporary_file"
+        echo "Error: failed to install the normalized Debian control file."
+        return 1
+    fi
+}
+
 # Core session packages are built and installed before the user chooses an X11
 # or Wayland compositor.  Their historical Debian metadata requires a window
 # manager immediately, which either blocks bootstrap or makes APT pick an
@@ -309,6 +396,9 @@ defer_session_runtime_dependency() {
 # are scoped to their source package and skipped once the fixed code is
 # present, so updated repositories are not rewritten.
 apply_source_compatibility() {
+    if ! repair_debian_control_layout; then
+        exit 1
+    fi
     if ! normalize_debian_maintainer_metadata; then
         exit 1
     fi
@@ -725,14 +815,8 @@ apply_apt_build_dep_compatibility() {
     local package="qt6-wayland-dev-tools"
     local candidate
 
-    # Older installer runs removed a dependency name from a continuation line
-    # but left its indentation behind.  Resume reuses that modified checkout,
-    # so repair these invalid whitespace-only continuation lines before the
-    # dependency-presence check below.  Valid stanza separators are empty
-    # lines and therefore are not affected.
-    if grep -Eq '^[[:space:]]+$' "$PROJ_ROOT/debian/control"; then
-        echo "APT compatibility: repairing invalid blank continuation lines in debian/control."
-        sed -i -E '/^[[:space:]]+$/d' "$PROJ_ROOT/debian/control"
+    if ! repair_debian_control_layout; then
+        exit 1
     fi
 
     if ! grep -Eq "(^|[[:space:],])${package}([[:space:],]|$)" \
