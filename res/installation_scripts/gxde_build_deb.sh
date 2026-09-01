@@ -372,6 +372,19 @@ apply_source_compatibility() {
                 echo "Source compatibility: the GXDE iwlwifi configuration already has a distribution-safe name."
             fi
             ;;
+        gxde-dock)
+            local system_monitor_cmake="$PROJ_ROOT/plugins/dde-sys-monitor-plugin/CMakeLists.txt"
+
+            if sed -n '/find_package(PkgConfig REQUIRED)/,+1p' \
+                "$system_monitor_cmake" \
+                | grep -Fq 'pkg_check_modules(dtk2widget REQUIRED dtk2widget)'; then
+                echo "Source compatibility: GXDE Dock loads PkgConfig before checking DTK2 Widget."
+            else
+                apply_bundled_source_patch \
+                    "GXDE Dock CMake PkgConfig scope" \
+                    "$PROJ_ROOT/patches/gxde-dock-cmake-pkg-config-scope.patch"
+            fi
+            ;;
         libdframeworkdbus-qt6)
             if grep -Fq \
                 'find_package(Qt6CorePrivate REQUIRED)' \

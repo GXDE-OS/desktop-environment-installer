@@ -779,6 +779,7 @@ class InstallerTest(unittest.TestCase):
         "dtk2widget6-qt-6.10-moc-namespace.patch",
         "dtk2widget6-qt-6.10-tab-offsets.patch",
         "dtk6widget-qt-6.10.patch",
+        "gxde-dock-cmake-pkg-config-scope.patch",
         "gxde-qt6integration-qt-6.10-moc-namespace.patch",
         "qt6integration-qt-6.10-private-targets.patch",
         "qt6integration-qt-6.10-generic-theme-header.patch",

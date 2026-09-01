@@ -550,6 +550,75 @@ class BuildScriptTest(unittest.TestCase):
         (installed_headers / "qxcbconnection.h").read_bytes(),
       )
 
+  def test_gxde_dock_loads_pkg_config_before_checking_modules(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      plugin_directory = repository / "plugins/dde-sys-monitor-plugin"
+      plugin_directory.mkdir(parents=True)
+      shutil.copytree(BUNDLED_PATCHES, repository / "patches")
+      cmake_file = plugin_directory / "CMakeLists.txt"
+      cmake_file.write_text(
+        'file(GLOB_RECURSE SRCS "*.h" "*.cpp" "*.ui")\n'
+        "# <库名>_INCLUDE_DIRS   有哪些头文件目录（Qt5Widgets_INCLUDE_DIRS）\n"
+        "# <库名>_LIBRARIES      有哪些库文件（Qt5Widgets_LIBRARIES）\n"
+        "find_package(Qt6 REQUIRED COMPONENTS Widgets)\n"
+        "pkg_check_modules(dtk2widget REQUIRED dtk2widget)\n\n"
+        "# find_package 命令还可以用来加载 cmake 的功能模块\n"
+        "# 并不是所有的库都直接支持 cmake 查找的，但大部分都支持了 pkg-config 这个标准，\n"
+        "# PKG_CONFIG_EXECUTABLE       pkg-config 可执行文件的路径\n"
+        "# PKG_CONFIG_VERSION_STRING   pkg-config 的版本信息\n"
+        "find_package(PkgConfig REQUIRED)\n\n"
+        "# 加载 FindPkgConfig 模块后就可以使用 pkg_check_modules 命令加载需要的库\n"
+        "# pkg_check_modules 命令是由 FindPkgConfig 模块提供的，因此要使用这个命令必须先加载 FindPkgConfig 模块。\n",
+        encoding="utf-8",
+      )
+      subprocess.run(
+        ["git", "init", "--quiet"],
+        cwd=repository,
+        check=True,
+      )
+
+      subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          'PKG_NAME="gxde-dock"; apply_source_compatibility',
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      updated_cmake = cmake_file.read_text(encoding="utf-8")
+      self.assertLess(
+        updated_cmake.index("find_package(PkgConfig REQUIRED)"),
+        updated_cmake.index(
+          "pkg_check_modules(dtk2widget REQUIRED dtk2widget)"
+        ),
+      )
+      resumed_run = subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          'PKG_NAME="gxde-dock"; apply_source_compatibility',
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+      self.assertIn(
+        "GXDE Dock loads PkgConfig before checking DTK2 Widget",
+        resumed_run.stdout,
+      )
+
   def test_moves_dtk2widget_moc_include_outside_namespace(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)
