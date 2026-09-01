@@ -312,34 +312,30 @@ class InstallerTest(unittest.TestCase):
     }
 
     self.assertTrue({
-      "gxde-wlcom",
-      "gxde-daemon",
       "dde-grand-search",
       "gxde-terminal",
       "gxde-display-manager",
       "gxde-wayland-session",
     }.issubset(wayland_repositories))
 
-    self.assertLess(
-      next(
-        index
-        for index, module in enumerate(installer.WAYLAND_SESSION_MODULES)
-        if module["repo_name"] == "gxde-wlcom"
-      ),
-      next(
-        index
-        for index, module in enumerate(installer.WAYLAND_SESSION_MODULES)
-        if module["repo_name"] == "gxde-daemon"
-      ),
-    )
-
-  def test_wayland_specific_daemon_is_not_in_core(self) -> None:
-    self.assertNotIn(
+    self.assertTrue({
+      "gxde-wlcom",
       "gxde-daemon",
-      {
-        module["repo_name"]
-        for module in installer.CORE_MODULES
-      },
+    }.isdisjoint(wayland_repositories))
+
+  def test_wlcom_and_daemon_are_bootstrapped_in_core(self) -> None:
+    core_repositories = [
+      module["repo_name"]
+      for module in installer.CORE_MODULES
+    ]
+
+    self.assertLess(
+      core_repositories.index("gxde-wlcom"),
+      core_repositories.index("gxde-daemon"),
+    )
+    self.assertLess(
+      core_repositories.index("gxde-daemon"),
+      core_repositories.index("gxde-file-manager"),
     )
 
   def test_distribution_base_package_is_not_installed_as_desktop_core(
@@ -421,6 +417,8 @@ class InstallerTest(unittest.TestCase):
     ]
     dependency_pairs = (
       ("deepin-installer-reborn", "deepin-daemon"),
+      ("gxde-wlcom", "gxde-daemon"),
+      ("gxde-daemon", "gxde-file-manager"),
       ("gxde-sni-server", "gxde-dock"),
       ("gxde-globalmenu-service", "gxde-top-panel"),
       ("gxde-top-panel-plugins", "gxde-top-panel"),

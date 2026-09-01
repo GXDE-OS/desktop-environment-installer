@@ -350,6 +350,21 @@ CORE_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    # gxde-daemon hard-depends on both the compositor and its client library.
+    # The gxde-file-manager source also produces gxde-desktop-panel, which
+    # hard-depends on gxde-daemon even for an X11 installation.  Bootstrap the
+    # compositor here so that daemon and panel packages can be installed
+    # incrementally before the user chooses a session.
+    "repo_name": "gxde-wlcom",
+    "display_name": "GXDE Wayland Compositor Runtime",
+    "branch": "gxde/zhuangzhuang",
+  },
+  {
+    "repo_name": "gxde-daemon",
+    "display_name": "GXDE Desktop Daemon",
+    "branch": "master",
+  },
+  {
     "repo_name": "startgxde",
     "display_name": "GXDE Session Starter",
     "branch": "master",
@@ -463,18 +478,6 @@ X11_SESSION_MODULES: list[ModuleDefinition] = [
 ]
 
 WAYLAND_SESSION_MODULES: list[ModuleDefinition] = [
-  {
-    "repo_name": "gxde-wlcom",
-    "display_name": "GXDE Wayland compositor",
-    "branch": "gxde/zhuangzhuang",
-  },
-  {
-    # The current daemon links to and hard-depends on the wlcom client, so it
-    # belongs to the Wayland session rather than the session-neutral core.
-    "repo_name": "gxde-daemon",
-    "display_name": "GXDE Wayland Desktop Daemon",
-    "branch": "master",
-  },
   {
     "repo_name": "dde-grand-search",
     "display_name": "GXDE Grand Search",
