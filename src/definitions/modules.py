@@ -499,6 +499,11 @@ WAYLAND_SESSION_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    "repo_name": "deepin-pdfium",
+    "display_name": "Deepin PDFium",
+    "branch": "master",
+  },
+  {
     "repo_name": "dde-grand-search",
     "display_name": "GXDE Grand Search",
     "branch": "master",
