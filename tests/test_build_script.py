@@ -798,6 +798,157 @@ class BuildScriptTest(unittest.TestCase):
         ),
       )
 
+  def test_top_panel_plugins_reuses_docks_bundled_dbusmenu(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      working_directory = Path(temporary_directory)
+      repository = working_directory / "gxde-top-panel-plugins"
+      repository.mkdir()
+      shutil.copytree(BUNDLED_PATCHES, repository / "patches")
+
+      dock_source = (
+        working_directory
+        / "gxde-dock/lib/3rdparty/libdbusmenu/src"
+      )
+      dock_source.mkdir(parents=True)
+      (dock_source / "CMakeLists.txt").write_text(
+        "add_library(dbusmenu-lxqt SHARED dbusmenu.cpp)\n",
+        encoding="utf-8",
+      )
+      dock_wrapper = working_directory / "gxde-dock/cmake/libdbusmenu"
+      dock_wrapper.mkdir(parents=True)
+      (dock_wrapper / "CMakeLists.txt").write_text(
+        "add_subdirectory(libdbusmenu)\n",
+        encoding="utf-8",
+      )
+
+      (repository / "debian").mkdir()
+      control = repository / "debian/control"
+      control.write_text(
+        "Source: gxde-top-panel-plugins\n"
+        "Build-Depends:\n"
+        "  debhelper-compat (= 13),\n"
+        "  libdbusmenu-lxqt-dev,\n"
+        "  qt6-base-dev\n",
+        encoding="utf-8",
+      )
+      root_cmake = repository / "CMakeLists.txt"
+      root_cmake.write_text(
+        "endif()\n\n"
+        'file(GLOB INTERFACES "interfaces/*.h")\n\n'
+        '#add_subdirectory("frame")\n'
+        'add_subdirectory("plugins")\n\n',
+        encoding="utf-8",
+      )
+      tray_directory = repository / "plugins/tray"
+      tray_directory.mkdir(parents=True)
+      tray_cmake = tray_directory / "CMakeLists.txt"
+      tray_cmake.write_text(
+        "find_package(Dtk6Widget REQUIRED)\n"
+        "find_package(Dtk6Gui REQUIRED)\n"
+        "find_package(Dtk6Core REQUIRED)\n"
+        "find_package(DFrameworkdbusQt6 CONFIG REQUIRED)\n"
+        "find_package(dbusmenu-lxqt CONFIG REQUIRED)\n\n"
+        "pkg_check_modules(XCB_LIBS REQUIRED xcb-ewmh xcb xcb-image "
+        "xcb-composite xtst x11 xext xcb-icccm)\n"
+        "pkg_check_modules(DDE-Network-Utils REQUIRED "
+        "gxde-network-utils-qt6)\n"
+        "pkg_check_modules(QGSettings REQUIRED gsettings-qt6)\n\n"
+        "add_definitions(\"${QT_DEFINITIONS} -DQT_PLUGIN\")\n"
+        "add_library(${PLUGIN_NAME} SHARED ${SRCS} tray.qrc)\n"
+        "set_target_properties(${PLUGIN_NAME} PROPERTIES "
+        "LIBRARY_OUTPUT_DIRECTORY ../)\n"
+        "target_include_directories(${PLUGIN_NAME} PUBLIC "
+        "${DtkGui_INCLUDE_DIRS}\n"
+        "                                                 "
+        "${XCB_LIBS_INCLUDE_DIRS}\n"
+        "                                                 "
+        "${DDE-Network-Utils_INCLUDE_DIRS}\n"
+        "                                                 "
+        "${QGSettings_INCLUDE_DIRS}\n"
+        "                                                 "
+        "${dbusmenu-lxqt_INCLUDE_DIRS}\n"
+        "                                                 ../../interfaces\n"
+        "                                                 ../../frame)\n"
+        "target_link_libraries(${PLUGIN_NAME} PRIVATE\n"
+        "    Dtk6::Gui\n"
+        "    Dtk6::Widget\n"
+        "    Dtk6::Core\n"
+        "    Qt6::Widgets\n"
+        "    Qt6::DBus\n"
+        "    Qt6::Svg\n"
+        "    ${XCB_LIBS_LIBRARIES}\n"
+        "    ${DDE-Network-Utils_LIBRARIES}\n"
+        "    #${dbusmenu-lxqt_LIBRARIES}\n"
+        "    dbusmenu-lxqt\n"
+        "    DFrameworkdbusQt6::DFrameworkdbusQt6\n"
+        "    ${QGSettings_LIBRARIES}\n"
+        "    pthread\n"
+        ")\n",
+        encoding="utf-8",
+      )
+      subprocess.run(
+        ["git", "init", "--quiet"],
+        cwd=repository,
+        check=True,
+      )
+
+      command = [
+        "bash",
+        "-c",
+        'source "$1"; PROJ_ROOT="$2"; '
+        'PKG_NAME="gxde-top-panel-plugins"; '
+        "apply_source_compatibility",
+        "build-script-test",
+        str(BUILD_SCRIPT),
+        str(repository),
+      ]
+      first_run = subprocess.run(
+        command,
+        check=False,
+        capture_output=True,
+        text=True,
+      )
+      self.assertEqual(
+        0,
+        first_run.returncode,
+        first_run.stdout + first_run.stderr,
+      )
+
+      self.assertNotIn("libdbusmenu-lxqt-dev", control.read_text())
+      self.assertIn(
+        'add_subdirectory("cmake/libdbusmenu")',
+        root_cmake.read_text(),
+      )
+      self.assertNotIn(
+        "find_package(dbusmenu-lxqt",
+        tray_cmake.read_text(),
+      )
+      self.assertTrue(
+        (
+          repository
+          / "lib/3rdparty/libdbusmenu/src/CMakeLists.txt"
+        ).is_file()
+      )
+      self.assertTrue(
+        (repository / "cmake/libdbusmenu/CMakeLists.txt").is_file()
+      )
+
+      resumed_run = subprocess.run(
+        command,
+        check=False,
+        capture_output=True,
+        text=True,
+      )
+      self.assertEqual(
+        0,
+        resumed_run.returncode,
+        resumed_run.stdout + resumed_run.stderr,
+      )
+      self.assertIn(
+        "already uses bundled Qt 6 dbusmenu",
+        resumed_run.stdout,
+      )
+
   def test_moves_dtk2widget_moc_include_outside_namespace(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)
