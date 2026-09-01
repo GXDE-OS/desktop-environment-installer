@@ -475,6 +475,12 @@ X11_SESSION_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    # GXDE KWin's KDE 5 packaging requires kf5-kscreenlocker-dev.
+    "repo_name": "kf5-kscreenlocker",
+    "display_name": "KDE Frameworks 5 Screen Locker",
+    "branch": "master",
+  },
+  {
     "repo_name": "gxde-kwin",
     "display_name": "GXDE KWin compositor",
     "branch": "5.24",

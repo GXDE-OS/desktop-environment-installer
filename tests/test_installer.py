@@ -618,16 +618,21 @@ class InstallerTest(unittest.TestCase):
     )
 
   def test_x11_stage_contains_kwin_runtime_dependencies(self) -> None:
-    x11_repositories = {
+    x11_repositories = [
       module["repo_name"]
       for module in installer.X11_SESSION_MODULES
-    }
+    ]
 
     self.assertTrue({
       "gxde-kglobalacceld",
+      "kf5-kscreenlocker",
       "gxde-kwin",
       "gxde-wm-shim",
     }.issubset(x11_repositories))
+    self.assertLess(
+      x11_repositories.index("kf5-kscreenlocker"),
+      x11_repositories.index("gxde-kwin"),
+    )
 
   def test_current_stage_uses_adapter_pattern_and_install_command(self) -> None:
     with TemporaryDirectory() as temporary_directory:
