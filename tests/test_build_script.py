@@ -837,28 +837,10 @@ class BuildScriptTest(unittest.TestCase):
         ),
       )
 
-  def test_top_panel_plugins_reuses_docks_bundled_dbusmenu(self) -> None:
+  def test_top_panel_plugins_uses_gxde_dbusmenu_qt6_package(self) -> None:
     with TemporaryDirectory() as temporary_directory:
-      working_directory = Path(temporary_directory)
-      repository = working_directory / "gxde-top-panel-plugins"
+      repository = Path(temporary_directory) / "gxde-top-panel-plugins"
       repository.mkdir()
-      shutil.copytree(BUNDLED_PATCHES, repository / "patches")
-
-      dock_source = (
-        working_directory
-        / "gxde-dock/lib/3rdparty/libdbusmenu/src"
-      )
-      dock_source.mkdir(parents=True)
-      (dock_source / "CMakeLists.txt").write_text(
-        "add_library(dbusmenu-lxqt SHARED dbusmenu.cpp)\n",
-        encoding="utf-8",
-      )
-      dock_wrapper = working_directory / "gxde-dock/cmake/libdbusmenu"
-      dock_wrapper.mkdir(parents=True)
-      (dock_wrapper / "CMakeLists.txt").write_text(
-        "add_subdirectory(libdbusmenu)\n",
-        encoding="utf-8",
-      )
 
       (repository / "debian").mkdir()
       control = repository / "debian/control"
@@ -874,6 +856,11 @@ class BuildScriptTest(unittest.TestCase):
       root_cmake.write_text(
         "endif()\n\n"
         'file(GLOB INTERFACES "interfaces/*.h")\n\n'
+        "# Build the Qt 6 dbusmenu implementation bundled with GXDE Dock.  "
+        "The source\n"
+        "# is copied into this checkout by the installer compatibility "
+        "step.\n"
+        'add_subdirectory("cmake/libdbusmenu")\n\n'
         '#add_subdirectory("frame")\n'
         'add_subdirectory("plugins")\n\n',
         encoding="utf-8",
@@ -908,6 +895,10 @@ class BuildScriptTest(unittest.TestCase):
         "${dbusmenu-lxqt_INCLUDE_DIRS}\n"
         "                                                 ../../interfaces\n"
         "                                                 ../../frame)\n"
+        "target_include_directories(${PLUGIN_NAME} PRIVATE\n"
+        '    "${CMAKE_SOURCE_DIR}/lib/3rdparty/libdbusmenu/src"\n'
+        '    "${CMAKE_BINARY_DIR}/cmake/libdbusmenu/dbusmenu-build/src"\n'
+        ")\n"
         "target_link_libraries(${PLUGIN_NAME} PRIVATE\n"
         "    Dtk6::Gui\n"
         "    Dtk6::Widget\n"
@@ -923,6 +914,11 @@ class BuildScriptTest(unittest.TestCase):
         "    ${QGSettings_LIBRARIES}\n"
         "    pthread\n"
         ")\n",
+        encoding="utf-8",
+      )
+      tray_source = tray_directory / "snitraywidget.cpp"
+      tray_source.write_text(
+        "#include <dbusmenu-lxqt/dbusmenuimporter.h>\n",
         encoding="utf-8",
       )
       subprocess.run(
@@ -953,23 +949,25 @@ class BuildScriptTest(unittest.TestCase):
         first_run.stdout + first_run.stderr,
       )
 
+      self.assertIn("libdbusmenu-qt6-dev", control.read_text())
       self.assertNotIn("libdbusmenu-lxqt-dev", control.read_text())
-      self.assertIn(
+      self.assertNotIn(
         'add_subdirectory("cmake/libdbusmenu")',
         root_cmake.read_text(),
       )
-      self.assertNotIn(
-        "find_package(dbusmenu-lxqt",
+      self.assertIn(
+        "find_package(dbusmenu-qt6 CONFIG REQUIRED)",
         tray_cmake.read_text(),
       )
-      self.assertTrue(
-        (
-          repository
-          / "lib/3rdparty/libdbusmenu/src/CMakeLists.txt"
-        ).is_file()
+      self.assertIn("dbusmenu-qt6", tray_cmake.read_text())
+      self.assertNotIn("dbusmenu-lxqt", tray_cmake.read_text())
+      self.assertNotIn(
+        "lib/3rdparty/libdbusmenu/src",
+        tray_cmake.read_text(),
       )
-      self.assertTrue(
-        (repository / "cmake/libdbusmenu/CMakeLists.txt").is_file()
+      self.assertIn(
+        "<dbusmenuimporter.h>",
+        tray_source.read_text(),
       )
 
       resumed_run = subprocess.run(
@@ -984,7 +982,63 @@ class BuildScriptTest(unittest.TestCase):
         resumed_run.stdout + resumed_run.stderr,
       )
       self.assertIn(
-        "already uses bundled Qt 6 dbusmenu",
+        "already uses DBusMenu Qt6",
+        resumed_run.stdout,
+      )
+
+  def test_dbusmenu_qt6_development_package_depends_on_qt6(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      control = repository / "debian/control"
+      control.write_text(
+        "Source: libdbusmenu-qt6\n"
+        "Build-Depends: debhelper-compat (= 13), qt6-base-dev\n\n"
+        "Package: libdbusmenu-qt6-dev\n"
+        "Architecture: any\n"
+        "Depends: libdbusmenu-qt6-2 (= ${binary:Version}),\n"
+        " qtbase5-dev,\n"
+        " ${misc:Depends}\n",
+        encoding="utf-8",
+      )
+
+      command = [
+        "bash",
+        "-c",
+        'source "$1"; PROJ_ROOT="$2"; '
+        'PKG_NAME="libdbusmenu-qt6"; '
+        "apply_source_compatibility",
+        "build-script-test",
+        str(BUILD_SCRIPT),
+        str(repository),
+      ]
+      first_run = subprocess.run(
+        command,
+        check=False,
+        capture_output=True,
+        text=True,
+      )
+      self.assertEqual(
+        0,
+        first_run.returncode,
+        first_run.stdout + first_run.stderr,
+      )
+      self.assertIn(" qt6-base-dev,", control.read_text())
+      self.assertNotIn("qtbase5-dev", control.read_text())
+
+      resumed_run = subprocess.run(
+        command,
+        check=False,
+        capture_output=True,
+        text=True,
+      )
+      self.assertEqual(
+        0,
+        resumed_run.returncode,
+        resumed_run.stdout + resumed_run.stderr,
+      )
+      self.assertIn(
+        "already use Qt 6",
         resumed_run.stdout,
       )
 

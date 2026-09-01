@@ -206,6 +206,14 @@ INFRA_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    # GXDE Top Panel Plugins imports the Qt 6 DBusMenu API.  Ubuntu no longer
+    # provides the old LXQt development package, so bootstrap GXDE's native
+    # Qt 6 library before entering the Core stage.
+    "repo_name": "libdbusmenu-qt6",
+    "display_name": "DBusMenu Qt6 Library",
+    "branch": "master",
+  },
+  {
     # Ubuntu does not package this wlroots protocol collection.  The GXDE
     # portal declares it as a build dependency, so bootstrap it from GXDE's
     # source repository before building the portal.

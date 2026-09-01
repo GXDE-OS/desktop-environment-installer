@@ -437,6 +437,31 @@ apply_source_compatibility() {
                     "$PROJ_ROOT/debian/control"
             fi
             ;;
+        libdbusmenu-qt6)
+            local dbusmenu_control="$PROJ_ROOT/debian/control"
+
+            # GXDE's package is built with Qt 6, but its development binary
+            # package still carries the upstream Qt 5 dependency name.  Keep
+            # the generated development package on the same Qt ABI as the
+            # library and its exported CMake target.
+            if grep -Eq '^[[:space:]]*qtbase5-dev([[:space:]]|,|\(|$)' \
+                "$dbusmenu_control"; then
+                echo "Source compatibility: correcting the DBusMenu Qt6 development dependency."
+                sed -i -E \
+                    's/^([[:space:]]*)qtbase5-dev([[:space:]]*,?)/\1qt6-base-dev\2/' \
+                    "$dbusmenu_control"
+            else
+                echo "Source compatibility: DBusMenu development dependencies already use Qt 6."
+            fi
+
+            if grep -Eq '^[[:space:]]*qtbase5-dev([[:space:]]|,|\(|$)' \
+                "$dbusmenu_control" \
+                || ! grep -Eq '^[[:space:]]*qt6-base-dev([[:space:]]|,|\(|$)' \
+                    "$dbusmenu_control"; then
+                echo "Error: failed to correct the DBusMenu Qt6 development dependency."
+                exit 1
+            fi
+            ;;
         libgnome-keyring)
             # GNOME's source uses Autotools, while this repository still has
             # a 2014 CDBS Debian wrapper. gnome-pkg-tools 0.22.13 retired its
@@ -562,70 +587,61 @@ apply_source_compatibility() {
             fi
             ;;
         gxde-top-panel-plugins)
-            local dock_repository="$(dirname "$PROJ_ROOT")/gxde-dock"
-            local dock_dbusmenu_source="$dock_repository/lib/3rdparty/libdbusmenu"
-            local dock_dbusmenu_wrapper="$dock_repository/cmake/libdbusmenu"
-            local panel_dbusmenu_source="$PROJ_ROOT/lib/3rdparty/libdbusmenu"
-            local panel_dbusmenu_wrapper="$PROJ_ROOT/cmake/libdbusmenu"
             local panel_control="$PROJ_ROOT/debian/control"
             local panel_root_cmake="$PROJ_ROOT/CMakeLists.txt"
             local panel_tray_cmake="$PROJ_ROOT/plugins/tray/CMakeLists.txt"
+            local panel_tray_source="$PROJ_ROOT/plugins/tray/snitraywidget.cpp"
 
-            # Ubuntu 26 no longer publishes libdbusmenu-lxqt-dev, but the tray
-            # genuinely uses this library. GXDE Dock, built earlier in the
-            # same stage, carries the Qt 6 source used by GXDE itself. Reuse
-            # that source instead of pretending the dependency is optional.
-            if ! grep -Fq 'add_subdirectory("cmake/libdbusmenu")' \
+            # Older installer revisions copied GXDE Dock's embedded DBusMenu
+            # tree into this checkout.  Remove only the CMake glue inserted by
+            # that compatibility path so --resume can migrate the same source
+            # tree to GXDE's independently packaged Qt 6 implementation.
+            if grep -Fq 'add_subdirectory("cmake/libdbusmenu")' \
                 "$panel_root_cmake"; then
-                if [[ ! -f "$dock_dbusmenu_source/src/CMakeLists.txt" \
-                    || ! -f "$dock_dbusmenu_wrapper/CMakeLists.txt" ]]; then
-                    echo "Error: GXDE Dock's bundled Qt 6 dbusmenu source was not found."
-                    echo "Build GXDE Dock before GXDE Top Panel Plugins."
-                    exit 1
-                fi
-
-                mkdir -p "$panel_dbusmenu_source" \
-                    "$panel_dbusmenu_wrapper"
-                if ! cp -a "$dock_dbusmenu_source/." \
-                    "$panel_dbusmenu_source/" \
-                    || ! cp -a "$dock_dbusmenu_wrapper/." \
-                    "$panel_dbusmenu_wrapper/"; then
-                    echo "Error: failed to copy GXDE Dock's bundled Qt 6 dbusmenu source."
-                    exit 1
-                fi
-
-                apply_bundled_source_patch \
-                    "GXDE Top Panel Plugins bundled Qt 6 dbusmenu" \
-                    "$PROJ_ROOT/patches/gxde-top-panel-plugins-vendored-dbusmenu.patch"
-            elif [[ ! -f "$panel_dbusmenu_source/src/CMakeLists.txt" \
-                || ! -f "$panel_dbusmenu_wrapper/CMakeLists.txt" ]]; then
-                echo "Error: GXDE Top Panel Plugins references bundled dbusmenu, but its source is missing."
-                exit 1
-            else
-                echo "Source compatibility: GXDE Top Panel Plugins already uses bundled Qt 6 dbusmenu."
+                echo "Source compatibility: removing the retired bundled DBusMenu integration."
+                sed -i \
+                    '/^# Build the Qt 6 dbusmenu implementation bundled with GXDE Dock\./,/^add_subdirectory("cmake\/libdbusmenu")$/d' \
+                    "$panel_root_cmake"
+            fi
+            if grep -Fq '"${CMAKE_SOURCE_DIR}/lib/3rdparty/libdbusmenu/src"' \
+                "$panel_tray_cmake"; then
+                sed -i \
+                    '/^target_include_directories(${PLUGIN_NAME} PRIVATE$/,/^)$/d' \
+                    "$panel_tray_cmake"
             fi
 
-            if ! grep -Fq 'add_subdirectory("cmake/libdbusmenu")' \
-                "$panel_root_cmake" \
-                || grep -Fq 'find_package(dbusmenu-lxqt CONFIG REQUIRED)' \
-                    "$panel_tray_cmake"; then
-                echo "Error: GXDE Top Panel Plugins' bundled dbusmenu configuration is incomplete."
-                exit 1
-            fi
-
-            if grep -Eq \
-                '^[[:space:]]*libdbusmenu-lxqt-dev([[:space:]]|,|\(|$)' \
-                "$panel_control"; then
-                echo "Source compatibility: replacing the unavailable system dbusmenu build dependency with GXDE's bundled source."
-                sed -i -E \
-                    '/^[[:space:]]*libdbusmenu-lxqt-dev([[:space:]]*\([^)]*\))?,?[[:space:]]*$/d' \
+            if grep -Fq 'dbusmenu-lxqt' "$panel_tray_cmake" \
+                || grep -Fq '<dbusmenu-lxqt/dbusmenuimporter.h>' \
+                    "$panel_tray_source" \
+                || grep -Fq '<dbusmenu-qt6/dbusmenuimporter.h>' \
+                    "$panel_tray_source" \
+                || grep -Eq \
+                    '^[[:space:]]*libdbusmenu-lxqt-dev([[:space:]]|,|\(|$)' \
+                    "$panel_control"; then
+                echo "Source compatibility: switching GXDE Top Panel Plugins to GXDE's DBusMenu Qt6 package."
+                sed -i 's/dbusmenu-lxqt/dbusmenu-qt6/g' \
+                    "$panel_tray_cmake" \
                     "$panel_control"
+                sed -i -E \
+                    's#<dbusmenu-(lxqt|qt6)/dbusmenuimporter\.h>#<dbusmenuimporter.h>#g' \
+                    "$panel_tray_source"
+            else
+                echo "Source compatibility: GXDE Top Panel Plugins already uses DBusMenu Qt6."
             fi
 
-            if grep -Eq \
-                '^[[:space:]]*libdbusmenu-lxqt-dev([[:space:]]|,|\(|$)' \
-                "$panel_control"; then
-                echo "Error: failed to replace GXDE Top Panel Plugins' system dbusmenu dependency."
+            if grep -Fq 'add_subdirectory("cmake/libdbusmenu")' \
+                "$panel_root_cmake" \
+                || grep -Fq 'lib/3rdparty/libdbusmenu/src' \
+                    "$panel_tray_cmake" \
+                || grep -Fq 'dbusmenu-lxqt' "$panel_tray_cmake" \
+                || ! grep -Fq 'find_package(dbusmenu-qt6 CONFIG REQUIRED)' \
+                    "$panel_tray_cmake" \
+                || ! grep -Fq '<dbusmenuimporter.h>' \
+                    "$panel_tray_source" \
+                || ! grep -Eq \
+                    '^[[:space:]]*libdbusmenu-qt6-dev([[:space:]]|,|\(|$)' \
+                    "$panel_control"; then
+                echo "Error: GXDE Top Panel Plugins' DBusMenu Qt6 configuration is incomplete."
                 exit 1
             fi
             ;;

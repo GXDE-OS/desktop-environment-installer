@@ -419,7 +419,6 @@ class InstallerTest(unittest.TestCase):
     dependency_pairs = (
       ("deepin-installer-reborn", "deepin-daemon"),
       ("gxde-sni-server", "gxde-dock"),
-      ("gxde-dock", "gxde-top-panel-plugins"),
       ("gxde-globalmenu-service", "gxde-top-panel"),
       ("gxde-top-panel-plugins", "gxde-top-panel"),
       ("gxde-top-panel", "gxde-control-center"),
@@ -503,6 +502,19 @@ class InstallerTest(unittest.TestCase):
     self.assertLess(
       infra_repositories.index("dframework-dbus-qt6"),
       infra_repositories.index("gxde-network-utils-qt6"),
+    )
+
+  def test_dbusmenu_qt6_is_bootstrapped_before_top_panel_plugins(
+      self,
+    ) -> None:
+    build_repositories = [
+      module["repo_name"]
+      for module in installer.INFRA_MODULES + installer.CORE_MODULES
+    ]
+
+    self.assertLess(
+      build_repositories.index("libdbusmenu-qt6"),
+      build_repositories.index("gxde-top-panel-plugins"),
     )
 
   def test_wayland_protocol_sources_precede_desktop_portal(self) -> None:
@@ -781,7 +793,6 @@ class InstallerTest(unittest.TestCase):
         "dtk2widget6-qt-6.10-tab-offsets.patch",
         "dtk6widget-qt-6.10.patch",
         "gxde-dock-cmake-pkg-config-scope.patch",
-        "gxde-top-panel-plugins-vendored-dbusmenu.patch",
         "gxde-qt6integration-qt-6.10-moc-namespace.patch",
         "qt6integration-qt-6.10-private-targets.patch",
         "qt6integration-qt-6.10-generic-theme-header.patch",
