@@ -1,0 +1,14 @@
+diff --git a/frame/CMakeLists.txt b/frame/CMakeLists.txt
+index 029c16c..0b99164 100644
+--- a/frame/CMakeLists.txt
++++ b/frame/CMakeLists.txt
+@@ -12 +12 @@ find_package(PkgConfig REQUIRED)
+-find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent DBus Gui)
++find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent DBus Gui GuiPrivate)
+diff --git a/plugins/tray/CMakeLists.txt b/plugins/tray/CMakeLists.txt
+index 404bff5..98f28c8 100644
+--- a/plugins/tray/CMakeLists.txt
++++ b/plugins/tray/CMakeLists.txt
+@@ -26 +26 @@ find_package(PkgConfig REQUIRED)
+-find_package(Qt6 REQUIRED COMPONENTS Widgets Svg DBus Gui)
++find_package(Qt6 REQUIRED COMPONENTS Widgets Svg DBus Gui GuiPrivate)

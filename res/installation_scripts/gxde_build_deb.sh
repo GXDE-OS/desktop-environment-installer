@@ -374,6 +374,8 @@ apply_source_compatibility() {
             ;;
         gxde-dock)
             local system_monitor_cmake="$PROJ_ROOT/plugins/dde-sys-monitor-plugin/CMakeLists.txt"
+            local dock_frame_cmake="$PROJ_ROOT/frame/CMakeLists.txt"
+            local dock_tray_cmake="$PROJ_ROOT/plugins/tray/CMakeLists.txt"
 
             if sed -n '/find_package(PkgConfig REQUIRED)/,+1p' \
                 "$system_monitor_cmake" \
@@ -383,6 +385,19 @@ apply_source_compatibility() {
                 apply_bundled_source_patch \
                     "GXDE Dock CMake PkgConfig scope" \
                     "$PROJ_ROOT/patches/gxde-dock-cmake-pkg-config-scope.patch"
+            fi
+
+            if grep -Fq \
+                'find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent DBus Gui GuiPrivate)' \
+                "$dock_frame_cmake" \
+                && grep -Fq \
+                'find_package(Qt6 REQUIRED COMPONENTS Widgets Svg DBus Gui GuiPrivate)' \
+                "$dock_tray_cmake"; then
+                echo "Source compatibility: GXDE Dock explicitly imports the Qt GUI private target."
+            else
+                apply_bundled_source_patch \
+                    "GXDE Dock Qt GUI private target" \
+                    "$PROJ_ROOT/patches/gxde-dock-qt6-gui-private.patch"
             fi
             ;;
         libdframeworkdbus-qt6)

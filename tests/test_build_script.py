@@ -555,6 +555,10 @@ class BuildScriptTest(unittest.TestCase):
       repository = Path(temporary_directory)
       plugin_directory = repository / "plugins/dde-sys-monitor-plugin"
       plugin_directory.mkdir(parents=True)
+      frame_directory = repository / "frame"
+      frame_directory.mkdir()
+      tray_directory = repository / "plugins/tray"
+      tray_directory.mkdir()
       shutil.copytree(BUNDLED_PATCHES, repository / "patches")
       cmake_file = plugin_directory / "CMakeLists.txt"
       cmake_file.write_text(
@@ -570,6 +574,21 @@ class BuildScriptTest(unittest.TestCase):
         "find_package(PkgConfig REQUIRED)\n\n"
         "# 加载 FindPkgConfig 模块后就可以使用 pkg_check_modules 命令加载需要的库\n"
         "# pkg_check_modules 命令是由 FindPkgConfig 模块提供的，因此要使用这个命令必须先加载 FindPkgConfig 模块。\n",
+        encoding="utf-8",
+      )
+      frame_cmake = frame_directory / "CMakeLists.txt"
+      frame_cmake.write_text(
+        "# Find the library\n"
+        "find_package(PkgConfig REQUIRED)\n"
+        "find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent DBus Gui)\n"
+        "find_package(LayerShellQt REQUIRED)\n",
+        encoding="utf-8",
+      )
+      tray_cmake = tray_directory / "CMakeLists.txt"
+      tray_cmake.write_text(
+        "find_package(PkgConfig REQUIRED)\n"
+        "find_package(Qt6 REQUIRED COMPONENTS Widgets Svg DBus Gui)\n"
+        "pkg_check_modules(dtk2widget REQUIRED dtk2widget)\n",
         encoding="utf-8",
       )
       subprocess.run(
@@ -600,6 +619,14 @@ class BuildScriptTest(unittest.TestCase):
           "pkg_check_modules(dtk2widget REQUIRED dtk2widget)"
         ),
       )
+      self.assertIn(
+        "find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent DBus Gui GuiPrivate)",
+        frame_cmake.read_text(encoding="utf-8"),
+      )
+      self.assertIn(
+        "find_package(Qt6 REQUIRED COMPONENTS Widgets Svg DBus Gui GuiPrivate)",
+        tray_cmake.read_text(encoding="utf-8"),
+      )
       resumed_run = subprocess.run(
         [
           "bash",
@@ -616,6 +643,10 @@ class BuildScriptTest(unittest.TestCase):
       )
       self.assertIn(
         "GXDE Dock loads PkgConfig before checking DTK2 Widget",
+        resumed_run.stdout,
+      )
+      self.assertIn(
+        "GXDE Dock explicitly imports the Qt GUI private target",
         resumed_run.stdout,
       )
 
