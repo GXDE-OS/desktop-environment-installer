@@ -223,6 +223,57 @@ class BuildScriptTest(unittest.TestCase):
         updated_control,
       )
 
+  def test_shell_compressor_repairs_empty_changelog_email(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      (repository / "debian/control").write_text(
+        "Source: gxde-shell-compressor\n"
+        "Maintainer: shenmo <jifengshenmo@outlook.com>\n"
+        "Build-Depends: debhelper-compat (= 13)\n\n"
+        "Package: gxde-shell-compressor\n"
+        "Architecture: all\n"
+        "Depends: ${misc:Depends}\n",
+        encoding="utf-8",
+      )
+      changelog = repository / "debian/changelog"
+      changelog.write_text(
+        "gxde-shell-compressor (1.4.1) UNRELEASED; urgency=low\n\n"
+        "  * Test entry\n\n"
+        " -- shenmo <>  Sun, 01 Dec 2024 02:31:12 +0800\n\n"
+        "gxde-shell-compressor (1.4.0) unstable; urgency=medium\n\n"
+        "  * Previous entry\n\n"
+        " -- Other Person <other@example.com>  Sat, 30 Nov 2024 12:00:00 +0800\n",
+        encoding="utf-8",
+      )
+
+      command = [
+        "bash",
+        "-c",
+        'source "$1"; PROJ_ROOT="$2"; '
+        'PKG_NAME="gxde-shell-compressor"; '
+        "apply_source_compatibility",
+        "build-script-test",
+        str(BUILD_SCRIPT),
+        str(repository),
+      ]
+      for _ in range(2):
+        result = subprocess.run(
+          command,
+          check=False,
+          capture_output=True,
+          text=True,
+        )
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+      repaired_changelog = changelog.read_text(encoding="utf-8")
+      self.assertEqual(
+        1,
+        repaired_changelog.count("shenmo <jifengshenmo@outlook.com>"),
+      )
+      self.assertNotIn("shenmo <>", repaired_changelog)
+      self.assertIn("Other Person <other@example.com>", repaired_changelog)
+
   def test_merges_additional_maintainers_into_existing_uploaders(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)

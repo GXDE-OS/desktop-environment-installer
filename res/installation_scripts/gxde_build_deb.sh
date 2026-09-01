@@ -412,6 +412,31 @@ apply_source_compatibility() {
             defer_session_runtime_dependency \
                 'gxde-wm-shim | deepin-metacity | gxde-kwin-neo | gxde-wlcom'
             ;;
+        gxde-shell-compressor)
+            local compressor_changelog="$PROJ_ROOT/debian/changelog"
+
+            # The repository's changelog has an empty address (shenmo <>),
+            # which modern dpkg rejects.  Shenmo's commits in this repository
+            # consistently use jifengshenmo@outlook.com.
+            if grep -Eq \
+                '^[[:space:]]*--[[:space:]]+shenmo[[:space:]]+<[[:space:]]*>' \
+                "$compressor_changelog"; then
+                echo "Source compatibility: restoring GXDE Shell Compressor's changelog email from its Git history."
+                if ! sed -i -E \
+                    's/^([[:space:]]*--[[:space:]]+shenmo[[:space:]]+)<[[:space:]]*>/\1<jifengshenmo@outlook.com>/' \
+                    "$compressor_changelog"; then
+                    echo "Error: failed to repair GXDE Shell Compressor's changelog email."
+                    exit 1
+                fi
+            fi
+
+            if grep -Eq \
+                '^[[:space:]]*--[[:space:]]+shenmo[[:space:]]+<[[:space:]]*>' \
+                "$compressor_changelog"; then
+                echo "Error: GXDE Shell Compressor's changelog still contains an empty maintainer email."
+                exit 1
+            fi
+            ;;
         dpa-ext-gnomekeyring)
             # The current GXDE repository contains no qmake/CMake/Meson build
             # definition or Debian install manifest.  It therefore produces a
