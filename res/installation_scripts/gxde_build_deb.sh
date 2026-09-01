@@ -372,6 +372,51 @@ apply_source_compatibility() {
                 echo "Source compatibility: the GXDE iwlwifi configuration already has a distribution-safe name."
             fi
             ;;
+        gxde-globalmenu-service)
+            local global_menu_control="$PROJ_ROOT/debian/control"
+            local unused_global_menu_dependency
+            local global_menu_unused_dependencies=(
+                libdtkwidget-dev
+                libdtkcore-dev
+                libdtkcore5-bin
+                libdframeworkdbus-dev
+                libgsettings-qt-dev
+            )
+
+            # The service only links Qt5, KF5 and XCB.  Its Debian metadata
+            # still lists DTK and other Deepin framework development packages
+            # that are not referenced by the build, and an unversioned
+            # libdtkwidget-dev resolves to the distribution's DTK5 package on
+            # Ubuntu instead of GXDE's already-installed compatibility stack.
+            # Stop if a future source revision genuinely starts using DTK.
+            if grep -Eqi \
+                'find_package\([^)]*dtk|pkg_check_modules\([^)]*dtk|Dtk::|DTK::' \
+                "$PROJ_ROOT/CMakeLists.txt"; then
+                echo "Source compatibility: GXDE Global Menu Service now uses DTK; preserving its declared build dependencies."
+                return
+            fi
+
+            if grep -Eq \
+                '^[[:space:]]*(libdtkwidget-dev|libdtkcore-dev|libdtkcore5-bin|libdframeworkdbus-dev|libgsettings-qt-dev)([[:space:]]|,|\(|$)' \
+                "$global_menu_control"; then
+                echo "Source compatibility: removing unused DTK and Deepin framework build dependencies from GXDE Global Menu Service."
+                for unused_global_menu_dependency in \
+                    "${global_menu_unused_dependencies[@]}"; do
+                    sed -i -E \
+                        "/^[[:space:]]*${unused_global_menu_dependency}([[:space:]]*\([^)]*\))?,?[[:space:]]*$/d" \
+                        "$global_menu_control"
+                done
+            else
+                echo "Source compatibility: GXDE Global Menu Service build dependencies already match its source."
+            fi
+
+            if grep -Eq \
+                '^[[:space:]]*(libdtkwidget-dev|libdtkcore-dev|libdtkcore5-bin|libdframeworkdbus-dev|libgsettings-qt-dev)([[:space:]]|,|\(|$)' \
+                "$global_menu_control"; then
+                echo "Error: failed to remove unused GXDE Global Menu Service build dependencies."
+                exit 1
+            fi
+            ;;
         gxde-dock)
             local system_monitor_cmake="$PROJ_ROOT/plugins/dde-sys-monitor-plugin/CMakeLists.txt"
             local dock_frame_cmake="$PROJ_ROOT/frame/CMakeLists.txt"

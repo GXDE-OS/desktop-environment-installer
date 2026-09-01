@@ -265,6 +265,71 @@ class BuildScriptTest(unittest.TestCase):
         renamed_config.read_text(encoding="utf-8"),
       )
 
+  def test_global_menu_drops_unused_deepin_build_dependencies(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      control = repository / "debian/control"
+      control.write_text(
+        "Source: gxde-globalmenu-service\n"
+        "Maintainer: GXDE <team@example.com>\n"
+        "Build-Depends:\n"
+        " debhelper-compat (= 13),\n"
+        " qtbase5-dev,\n"
+        " libdtkwidget-dev,\n"
+        " libdtkcore-dev,\n"
+        " libdtkcore5-bin,\n"
+        " libdframeworkdbus-dev,\n"
+        " libgsettings-qt-dev,\n"
+        " libkf5windowsystem-dev\n",
+        encoding="utf-8",
+      )
+      (repository / "CMakeLists.txt").write_text(
+        "find_package(Qt5Widgets REQUIRED)\n"
+        "find_package(KF5WindowSystem REQUIRED)\n"
+        "find_package(XCB REQUIRED COMPONENTS xcb)\n",
+        encoding="utf-8",
+      )
+
+      command = [
+        "bash",
+        "-c",
+        'source "$1"; PROJ_ROOT="$2"; '
+        'PKG_NAME="gxde-globalmenu-service"; apply_source_compatibility',
+        "build-script-test",
+        str(BUILD_SCRIPT),
+        str(repository),
+      ]
+      subprocess.run(
+        command,
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      updated_control = control.read_text(encoding="utf-8")
+      for unused_dependency in (
+        "libdtkwidget-dev",
+        "libdtkcore-dev",
+        "libdtkcore5-bin",
+        "libdframeworkdbus-dev",
+        "libgsettings-qt-dev",
+      ):
+        self.assertNotIn(unused_dependency, updated_control)
+      self.assertIn("qtbase5-dev", updated_control)
+      self.assertIn("libkf5windowsystem-dev", updated_control)
+
+      resumed_run = subprocess.run(
+        command,
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+      self.assertIn(
+        "build dependencies already match its source",
+        resumed_run.stdout,
+      )
+
   def test_metadata_only_keyring_extension_drops_obsolete_build_deps(
       self,
     ) -> None:
