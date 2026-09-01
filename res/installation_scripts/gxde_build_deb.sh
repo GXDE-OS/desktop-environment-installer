@@ -726,6 +726,24 @@ endif()\
                     "$PROJ_ROOT/patches/gxde-file-manager-qt-6.10-qprocess-environment.patch"
             fi
             ;;
+        gxde-wlcom)
+            local wlroots_libinput_switch="$PROJ_ROOT/subprojects/wlroots/backend/libinput/switch.c"
+
+            # New libinput releases added switch kinds that this bundled
+            # wlroots version cannot represent.  Ignore unknown kinds instead
+            # of leaving wlr_event.switch_type uninitialized; the default also
+            # keeps -Werror=switch builds working across libinput versions.
+            if grep -A3 -F \
+                'case LIBINPUT_SWITCH_TABLET_MODE:' \
+                "$wlroots_libinput_switch" \
+                | grep -Fq 'default:'; then
+                echo "Source compatibility: bundled wlroots already ignores unsupported libinput switch kinds."
+            else
+                apply_bundled_source_patch \
+                    "GXDE Wlcom new libinput switch kinds" \
+                    "$PROJ_ROOT/patches/gxde-wlcom-libinput-keypad-switch.patch"
+            fi
+            ;;
         gxde-launcher)
             local launcher_cmake="$PROJ_ROOT/CMakeLists.txt"
 

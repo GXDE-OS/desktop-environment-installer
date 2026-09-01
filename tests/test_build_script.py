@@ -1300,6 +1300,75 @@ class BuildScriptTest(unittest.TestCase):
         patched_controller,
       )
 
+  def test_wlcom_ignores_libinput_switch_kinds_unknown_to_wlroots(
+      self,
+    ) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      (repository / "debian/control").write_text(
+        "Source: gxde-wlcom\n"
+        "Build-Depends: debhelper-compat (= 13), libinput-dev\n\n"
+        "Package: gxde-wlcom\n"
+        "Architecture: any\n"
+        "Depends: ${misc:Depends}\n",
+        encoding="utf-8",
+      )
+      switch_source = (
+        repository
+        / "subprojects/wlroots/backend/libinput/switch.c"
+      )
+      switch_source.parent.mkdir(parents=True)
+      switch_source.write_text(
+        "void handle_switch_toggle(void) {\n"
+        "\tswitch (libinput_event_switch_get_switch(sevent)) {\n"
+        "\tcase LIBINPUT_SWITCH_LID:\n"
+        "\t\twlr_event.switch_type = WLR_SWITCH_TYPE_LID;\n"
+        "\t\tbreak;\n"
+        "\tcase LIBINPUT_SWITCH_TABLET_MODE:\n"
+        "\t\twlr_event.switch_type = WLR_SWITCH_TYPE_TABLET_MODE;\n"
+        "\t\tbreak;\n"
+        "\t}\n"
+        "\tswitch (libinput_event_switch_get_switch_state(sevent)) {\n"
+        "\tcase LIBINPUT_SWITCH_STATE_OFF:\n"
+        "\t\twlr_event.switch_state = WLR_SWITCH_STATE_OFF;\n"
+        "\t\tbreak;\n"
+        "\t}\n"
+        "}\n",
+        encoding="utf-8",
+      )
+      shutil.copytree(BUNDLED_PATCHES, repository / "patches")
+      subprocess.run(
+        ["git", "init", "--quiet"],
+        cwd=repository,
+        check=True,
+      )
+
+      command = [
+        "bash",
+        "-c",
+        'source "$1"; PROJ_ROOT="$2"; '
+        'PKG_NAME="gxde-wlcom"; '
+        "apply_source_compatibility",
+        "build-script-test",
+        str(BUILD_SCRIPT),
+        str(repository),
+      ]
+      for _ in range(2):
+        result = subprocess.run(
+          command,
+          check=False,
+          capture_output=True,
+          text=True,
+        )
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+      patched_switch = switch_source.read_text(encoding="utf-8")
+      self.assertIn(
+        "\tdefault:\n\t\treturn;",
+        patched_switch,
+      )
+
   def test_launcher_imports_qt_gui_private_target(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)
