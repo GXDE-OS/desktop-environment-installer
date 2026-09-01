@@ -494,6 +494,11 @@ X11_SESSION_MODULES: list[ModuleDefinition] = [
 
 WAYLAND_SESSION_MODULES: list[ModuleDefinition] = [
   {
+    "repo_name": "util-dfm",
+    "display_name": "GXDE DFM utils",
+    "branch": "master",
+  },
+  {
     "repo_name": "dde-grand-search",
     "display_name": "GXDE Grand Search",
     "branch": "master",
