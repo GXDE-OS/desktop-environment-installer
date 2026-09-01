@@ -301,14 +301,22 @@ class BuildScriptTest(unittest.TestCase):
       self.assertNotIn("gxde-polkit-agent-dev", updated_control)
       self.assertNotIn("libgnome-keyring-dev", updated_control)
 
-  def test_legacy_keyring_allows_retired_cdbs_autoreconf_rule(self) -> None:
+  def test_legacy_keyring_replaces_retired_cdbs_with_debhelper(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)
       (repository / "debian").mkdir()
       (repository / "debian/control").write_text(
         "Source: libgnome-keyring\n"
         "Maintainer: GXDE <team@example.com>\n"
-        "Build-Depends: cdbs, dh-autoreconf\n",
+        "Build-Depends: debhelper (>= 9),\n"
+        " cdbs (>= 0.4.93~),\n"
+        " dh-autoreconf,\n"
+        " gnome-pkg-tools (>= 0.10),\n"
+        " intltool\n",
+        encoding="utf-8",
+      )
+      (repository / "debian/control.in").write_text(
+        (repository / "debian/control").read_text(encoding="utf-8"),
         encoding="utf-8",
       )
       rules = repository / "debian/rules"
@@ -318,6 +326,13 @@ class BuildScriptTest(unittest.TestCase):
         "include /usr/share/cdbs/1/rules/autoreconf.mk\n"
         "include /usr/share/cdbs/1/class/gnome.mk\n",
         encoding="utf-8",
+      )
+      compatibility_directory = repository / "compat/libgnome-keyring"
+      compatibility_directory.mkdir(parents=True)
+      shutil.copy2(
+        PROJECT_ROOT
+        / "res/installation_scripts/compat/libgnome-keyring/debian-rules",
+        compatibility_directory / "debian-rules",
       )
 
       subprocess.run(
@@ -336,14 +351,15 @@ class BuildScriptTest(unittest.TestCase):
       )
 
       updated_rules = rules.read_text(encoding="utf-8")
-      self.assertIn(
-        "-include /usr/share/cdbs/1/rules/autoreconf.mk\n",
-        updated_rules,
+      updated_control = (repository / "debian/control").read_text(
+        encoding="utf-8",
       )
-      self.assertNotIn(
-        "\ninclude /usr/share/cdbs/1/rules/autoreconf.mk\n",
-        updated_rules,
-      )
+      self.assertIn("dh $@ --with gnome\n", updated_rules)
+      self.assertNotIn("/usr/share/cdbs", updated_rules)
+      self.assertNotIn("cdbs (>=", updated_control)
+      self.assertNotIn("dh-autoreconf", updated_control)
+      self.assertIn("gnome-pkg-tools (>= 0.10)", updated_control)
+      self.assertTrue(rules.stat().st_mode & 0o100)
 
   def test_deepin_daemon_defers_compositor_until_session_selection(
       self,
