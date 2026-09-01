@@ -1117,6 +1117,61 @@ class BuildScriptTest(unittest.TestCase):
         frame_cmake.read_text().count("Qt6::GuiPrivate"),
       )
 
+  def test_launcher_imports_qt_gui_private_target(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      (repository / "debian/control").write_text(
+        "Source: gxde-launcher\n"
+        "Build-Depends: debhelper-compat (= 13), qt6-base-private-dev\n\n"
+        "Package: gxde-launcher\n"
+        "Architecture: any\n"
+        "Depends: ${misc:Depends}\n",
+        encoding="utf-8",
+      )
+      launcher_cmake = repository / "CMakeLists.txt"
+      launcher_cmake.write_text(
+        "find_package(PkgConfig REQUIRED)\n"
+        "find_package(Qt6Widgets REQUIRED)\n"
+        "find_package(Qt6Concurrent REQUIRED)\n\n"
+        "add_executable(${BIN_NAME} ${SRCS})\n"
+        "target_include_directories(${BIN_NAME} PUBLIC\n"
+        "    ${Qt6Gui_PRIVATE_INCLUDE_DIRS}\n"
+        ")\n"
+        "target_link_libraries(${BIN_NAME} PRIVATE\n"
+        "    ${Qt6Widgets_LIBRARIES}\n"
+        "    ${Qt6Concurrent_LIBRARIES}\n"
+        ")\n",
+        encoding="utf-8",
+      )
+
+      command = [
+        "bash",
+        "-c",
+        'source "$1"; PROJ_ROOT="$2"; '
+        'PKG_NAME="gxde-launcher"; '
+        "apply_source_compatibility",
+        "build-script-test",
+        str(BUILD_SCRIPT),
+        str(repository),
+      ]
+      for _ in range(2):
+        result = subprocess.run(
+          command,
+          check=False,
+          capture_output=True,
+          text=True,
+        )
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+      patched_cmake = launcher_cmake.read_text(encoding="utf-8")
+      self.assertEqual(
+        1,
+        patched_cmake.count("find_package(Qt6GuiPrivate REQUIRED)"),
+      )
+      self.assertEqual(2, patched_cmake.count("Qt6::GuiPrivate"))
+      self.assertIn("${Qt6Gui_PRIVATE_INCLUDE_DIRS}", patched_cmake)
+
   def test_moves_dtk2widget_moc_include_outside_namespace(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)

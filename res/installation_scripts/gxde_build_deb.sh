@@ -645,6 +645,47 @@ apply_source_compatibility() {
                 exit 1
             fi
             ;;
+        gxde-launcher)
+            local launcher_cmake="$PROJ_ROOT/CMakeLists.txt"
+
+            # GXDE Launcher includes qguiapplication_p.h directly.  Its
+            # Qt6Gui_PRIVATE_INCLUDE_DIRS reference remains empty until CMake
+            # imports GuiPrivate, and linking the target propagates the
+            # versioned private include directories to the executable.
+            if ! grep -Fq 'find_package(Qt6GuiPrivate REQUIRED)' \
+                "$launcher_cmake"; then
+                echo "Source compatibility: importing the Qt GUI private target for GXDE Launcher."
+                if ! sed -i \
+                    '/^[[:space:]]*find_package(Qt6Widgets REQUIRED)[[:space:]]*$/a\
+if(NOT TARGET Qt6::GuiPrivate)\
+    find_package(Qt6GuiPrivate REQUIRED)\
+endif()' \
+                    "$launcher_cmake"; then
+                    echo "Error: failed to import the Qt GUI private target for GXDE Launcher."
+                    exit 1
+                fi
+            fi
+
+            if ! grep -Eq '^[[:space:]]*Qt6::GuiPrivate[[:space:]]*$' \
+                "$launcher_cmake"; then
+                echo "Source compatibility: linking GXDE Launcher to the Qt GUI private target."
+                if ! sed -i \
+                    '/^[[:space:]]*${Qt6Widgets_LIBRARIES}[[:space:]]*$/a\
+    Qt6::GuiPrivate' \
+                    "$launcher_cmake"; then
+                    echo "Error: failed to link GXDE Launcher to the Qt GUI private target."
+                    exit 1
+                fi
+            fi
+
+            if ! grep -Fq 'find_package(Qt6GuiPrivate REQUIRED)' \
+                "$launcher_cmake" \
+                || ! grep -Eq '^[[:space:]]*Qt6::GuiPrivate[[:space:]]*$' \
+                    "$launcher_cmake"; then
+                echo "Error: GXDE Launcher's Qt GUI private target configuration is incomplete."
+                exit 1
+            fi
+            ;;
         gxde-control-center)
             local control_center_frame_cmake="$PROJ_ROOT/src/frame/CMakeLists.txt"
 
