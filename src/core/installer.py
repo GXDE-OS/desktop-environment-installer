@@ -54,6 +54,24 @@ BUNDLE_ROOT = Path(
 )
 INSTALLATION_SCRIPTS_DIR = BUNDLE_ROOT / "res" / "installation_scripts"
 
+def _external_command_environment() -> dict[str, str]:
+  """Restore the host loader path before executing system build tools."""
+  environment = os.environ.copy()
+  original_loader_path = environment.pop("LD_LIBRARY_PATH_ORIG", None)
+
+  if original_loader_path is not None:
+    if original_loader_path:
+      environment["LD_LIBRARY_PATH"] = original_loader_path
+    else:
+      environment.pop("LD_LIBRARY_PATH", None)
+  elif getattr(sys, "frozen", False):
+    # PyInstaller prepends its _MEI extraction directory so the bundled
+    # executable can find its private libraries.  Propagating that path to
+    # dpkg-shlibdeps makes bundled libraries appear to have no Debian package.
+    environment.pop("LD_LIBRARY_PATH", None)
+
+  return environment
+
 def _state_path() -> Path:
   return Path(WORKING_DIR) / STATE_FILE_NAME
 
@@ -383,7 +401,11 @@ def gen_artifact(module: ModuleDefinition) -> None:
         build_command.extend(
           pm_adapter.architecture_independent_build_options
         )
-      os.execvp(build_command[0], build_command)
+      os.execvpe(
+        build_command[0],
+        build_command,
+        _external_command_environment(),
+      )
     except OSError as error:
       print(
         tr("Failed to start package build: ") + str(error),
@@ -464,7 +486,11 @@ def install_current_stage(archive_name: str) -> None:
         *pm_adapter.install_command,
         *(str(package) for package in packages),
       ]
-      os.execvp(install_command[0], install_command)
+      os.execvpe(
+        install_command[0],
+        install_command,
+        _external_command_environment(),
+      )
     except OSError as error:
       print(
         tr("Warning: failed to start package installation: ") + str(error),
@@ -734,7 +760,11 @@ def install_named_packages(
   if install_pid == 0:
     try:
       install_command = [*pm_adapter.install_command, *package_names]
-      os.execvp(install_command[0], install_command)
+      os.execvpe(
+        install_command[0],
+        install_command,
+        _external_command_environment(),
+      )
     except OSError as error:
       print(
         tr("Warning: failed to start package installation: ") + str(error),

@@ -13,7 +13,7 @@ from pathlib import Path
 import sys
 from tempfile import TemporaryDirectory
 import unittest
-from unittest.mock import patch
+from unittest.mock import ANY, patch
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
@@ -33,6 +33,36 @@ class InstallerTest(unittest.TestCase):
   def setUp(self) -> None:
     installer.RESUME_MODE = False
     installer.INSTALLATION_STATE = None
+
+  def test_external_commands_restore_pre_pyinstaller_loader_path(self) -> None:
+    with patch.dict(
+        installer.os.environ,
+        {
+          "LD_LIBRARY_PATH": "/tmp/_MEI12345",
+          "LD_LIBRARY_PATH_ORIG": "/usr/local/lib",
+          "PATH": "/usr/bin",
+        },
+        clear=True,
+      ):
+      environment = installer._external_command_environment()
+
+    self.assertEqual("/usr/local/lib", environment["LD_LIBRARY_PATH"])
+    self.assertNotIn("LD_LIBRARY_PATH_ORIG", environment)
+    self.assertEqual("/usr/bin", environment["PATH"])
+
+  def test_frozen_external_commands_drop_pyinstaller_loader_path(self) -> None:
+    with patch.dict(
+        installer.os.environ,
+        {
+          "LD_LIBRARY_PATH": "/tmp/_MEI12345",
+          "PATH": "/usr/bin",
+        },
+        clear=True,
+      ), patch.object(installer.sys, "frozen", True, create=True):
+      environment = installer._external_command_environment()
+
+    self.assertNotIn("LD_LIBRARY_PATH", environment)
+    self.assertEqual("/usr/bin", environment["PATH"])
 
   def test_install_original_dtk2_installs_each_module_incrementally(
       self,
@@ -246,14 +276,15 @@ class InstallerTest(unittest.TestCase):
         return_value=test_adapter,
       ), patch.object(installer.os, "fork", return_value=0), patch.object(
         installer.os,
-        "execvp",
+        "execvpe",
         side_effect=SystemExit,
-      ) as execvp_mock, self.assertRaises(SystemExit):
+      ) as execvpe_mock, self.assertRaises(SystemExit):
       installer.install_named_packages(("apm",), "APM")
 
-    execvp_mock.assert_called_once_with(
+    execvpe_mock.assert_called_once_with(
       "doas",
       ["doas", "test-pm", "install", "apm"],
+      ANY,
     )
 
   def test_desktop_installation_uses_dependency_stage_order(self) -> None:
@@ -612,12 +643,12 @@ class InstallerTest(unittest.TestCase):
           patch.object(installer.os, "chdir") as chdir_mock, \
           patch.object(
             installer.os,
-            "execvp",
+            "execvpe",
             side_effect=SystemExit,
-          ) as execvp_mock, self.assertRaises(SystemExit):
+          ) as execvpe_mock, self.assertRaises(SystemExit):
         installer.install_current_stage("DTK2")
 
-    execvp_mock.assert_called_once_with(
+    execvpe_mock.assert_called_once_with(
       "doas",
       [
         "doas",
@@ -626,6 +657,7 @@ class InstallerTest(unittest.TestCase):
         str(first_package.resolve()),
         str(second_package.resolve()),
       ],
+      ANY,
     )
     chdir_mock.assert_called_once_with(artifacts_dir.resolve())
 
@@ -866,18 +898,19 @@ class InstallerTest(unittest.TestCase):
         patch.object(installer.os, "chdir") as chdir_mock, \
         patch.object(
           installer.os,
-          "execvp",
+          "execvpe",
           side_effect=SystemExit,
-        ) as execvp_mock:
+        ) as execvpe_mock:
       with self.assertRaises(SystemExit):
         installer.gen_artifact(TEST_MODULE)
 
     chdir_mock.assert_called_once_with(
       "/tmp/gxde-work/test-repository",
     )
-    execvp_mock.assert_called_once_with(
+    execvpe_mock.assert_called_once_with(
       "./test-build",
       ["./test-build", "--install-deps"],
+      ANY,
     )
 
   def test_build_child_appends_adapter_arch_independent_option(self) -> None:
@@ -905,14 +938,15 @@ class InstallerTest(unittest.TestCase):
         patch.object(installer.os, "chdir"), \
         patch.object(
           installer.os,
-          "execvp",
+          "execvpe",
           side_effect=SystemExit,
-        ) as execvp_mock, self.assertRaises(SystemExit):
+        ) as execvpe_mock, self.assertRaises(SystemExit):
       installer.gen_artifact(module)
 
-    execvp_mock.assert_called_once_with(
+    execvpe_mock.assert_called_once_with(
       "./test-build",
       ["./test-build", "--install-deps", "--only-all"],
+      ANY,
     )
 
   def test_apt_build_failure_stops_artifact_generation(self) -> None:
