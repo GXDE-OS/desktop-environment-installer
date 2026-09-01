@@ -176,24 +176,77 @@ normalize_debian_maintainer_metadata() {
     local control_file="$PROJ_ROOT/debian/control"
     local maintainer_line
     local maintainers
+    local uploaders_line
+    local uploaders
+    local candidate_values
+    local candidate
+    local normalized_candidate
+    local existing_candidate
+    local maintainer_pattern='^.+[[:space:]]<[^<>[:space:]]+@[^<>[:space:]]+>$'
+    local -a raw_candidates=()
+    local -a valid_candidates=()
     local primary
-    local additional
+    local additional=""
     local has_uploaders=false
+    local duplicate
     local temporary_file
 
+    if [[ ! -f "$control_file" ]]; then
+        return
+    fi
     maintainer_line="$(grep -m1 '^Maintainer:' "$control_file")"
+    if [[ -z "$maintainer_line" ]]; then
+        return
+    fi
     maintainers="${maintainer_line#Maintainer:}"
-    if [[ "$maintainers" != *,* ]]; then
+    normalized_candidate="$(printf '%s\n' "$maintainers" \
+        | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s/[[:space:]]*</ </g')"
+    if [[ "$maintainers" != *,* \
+        && "$normalized_candidate" =~ $maintainer_pattern ]]; then
         return
     fi
 
-    primary="${maintainers%%,*}"
-    additional="${maintainers#*,}"
-    primary="$(printf '%s\n' "$primary" \
-        | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s/[[:space:]]*</ </g')"
-    additional="$(printf '%s\n' "$additional" \
-        | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s/[[:space:]]*</ </g')"
-    grep -q '^Uploaders:' "$control_file" && has_uploaders=true
+    uploaders_line="$(grep -m1 '^Uploaders:' "$control_file")"
+    uploaders="${uploaders_line#Uploaders:}"
+    if [[ -n "$uploaders_line" ]]; then
+        has_uploaders=true
+        candidate_values="$maintainers,$uploaders"
+    else
+        candidate_values="$maintainers"
+    fi
+
+    IFS=',' read -r -a raw_candidates <<< "$candidate_values"
+    for candidate in "${raw_candidates[@]}"; do
+        normalized_candidate="$(printf '%s\n' "$candidate" \
+            | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s/[[:space:]]*</ </g')"
+        if [[ ! "$normalized_candidate" =~ $maintainer_pattern ]]; then
+            continue
+        fi
+
+        duplicate=false
+        for existing_candidate in "${valid_candidates[@]}"; do
+            if [[ "$existing_candidate" == "$normalized_candidate" ]]; then
+                duplicate=true
+                break
+            fi
+        done
+        if [[ "$duplicate" == false ]]; then
+            valid_candidates+=("$normalized_candidate")
+        fi
+    done
+
+    if [[ ${#valid_candidates[@]} -eq 0 ]]; then
+        echo "Error: Debian Maintainer metadata contains no valid email address."
+        return 1
+    fi
+
+    primary="${valid_candidates[0]}"
+    for candidate in "${valid_candidates[@]:1}"; do
+        if [[ -n "$additional" ]]; then
+            additional+=", "
+        fi
+        additional+="$candidate"
+    done
 
     temporary_file="$(mktemp "$PROJ_ROOT/debian/control.XXXXXX")" || {
         echo "Error: failed to create a temporary Debian control file."
@@ -205,14 +258,15 @@ normalize_debian_maintainer_metadata() {
         -v has_uploaders="$has_uploaders" '
           /^Maintainer:/ {
             print "Maintainer: " primary
-            if (has_uploaders != "true") {
+            if (has_uploaders != "true" && additional != "") {
               print "Uploaders: " additional
             }
             next
           }
           /^Uploaders:/ && has_uploaders == "true" {
-            sub(/^Uploaders:[[:space:]]*/, "")
-            print "Uploaders: " additional ", " $0
+            if (additional != "") {
+              print "Uploaders: " additional
+            }
             next
           }
           { print }

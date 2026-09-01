@@ -225,6 +225,77 @@ class BuildScriptTest(unittest.TestCase):
       )
       self.assertEqual(updated_control.count("Uploaders:"), 1)
 
+  def test_promotes_valid_uploader_from_corrupted_maintainer(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      control = repository / "debian/control"
+      control.write_text(
+        "Source: gxde-globalmenu-service\n"
+        "Maintainer: SeptemberHX\n"
+        "Uploaders: gfdgd_xi <3025613752@qq.com>\n"
+        "Build-Depends: debhelper-compat (= 13)\n",
+        encoding="utf-8",
+      )
+
+      subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          "normalize_debian_maintainer_metadata",
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      updated_control = control.read_text(encoding="utf-8")
+      self.assertIn(
+        "Maintainer: gfdgd_xi <3025613752@qq.com>\n",
+        updated_control,
+      )
+      self.assertNotIn("Maintainer: SeptemberHX", updated_control)
+      self.assertNotIn("Uploaders:", updated_control)
+
+  def test_uses_valid_address_from_comma_separated_maintainers(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      control = repository / "debian/control"
+      control.write_text(
+        "Source: gxde-globalmenu-service\n"
+        "Maintainer: SeptemberHX, gfdgd_xi <3025613752@qq.com>\n"
+        "Build-Depends: debhelper-compat (= 13)\n",
+        encoding="utf-8",
+      )
+
+      subprocess.run(
+        [
+          "bash",
+          "-c",
+          'source "$1"; PROJ_ROOT="$2"; '
+          "normalize_debian_maintainer_metadata",
+          "build-script-test",
+          str(BUILD_SCRIPT),
+          str(repository),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+      )
+
+      updated_control = control.read_text(encoding="utf-8")
+      self.assertIn(
+        "Maintainer: gfdgd_xi <3025613752@qq.com>\n",
+        updated_control,
+      )
+      self.assertNotIn("SeptemberHX", updated_control)
+      self.assertNotIn("Uploaders:", updated_control)
+
   def test_renames_gxde_iwlwifi_config_to_avoid_kmod_conflict(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)
