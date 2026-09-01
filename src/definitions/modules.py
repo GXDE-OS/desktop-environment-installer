@@ -390,6 +390,14 @@ CORE_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    # GXDE Shell Compressor invokes zipu when extracting ZIP archives whose
+    # filenames are not UTF-8.  Ubuntu does not package this GXDE utility, so
+    # bootstrap it from GXDE-OS before installing the integration package.
+    "repo_name": "zipu",
+    "display_name": "Zip Unicode Extraction Utility",
+    "branch": "master",
+  },
+  {
     "repo_name": "gxde-shell-compressor",
     "display_name": "GXDE Shell Compressor Integration",
     "branch": "master",

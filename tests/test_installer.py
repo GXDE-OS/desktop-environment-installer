@@ -373,6 +373,7 @@ class InstallerTest(unittest.TestCase):
       "gxde-globalmenu-service",
       "gxde-requ",
       "gxde-shell-compressor",
+      "zipu",
       "gxde-sound-theme",
       "gxde-time-screensaver",
       "deepin-gtk-theme",
@@ -422,6 +423,7 @@ class InstallerTest(unittest.TestCase):
       ("gxde-globalmenu-service", "gxde-top-panel"),
       ("gxde-top-panel-plugins", "gxde-top-panel"),
       ("gxde-top-panel", "gxde-control-center"),
+      ("zipu", "gxde-shell-compressor"),
       ("gxde-shell-compressor", "gxde-compressor"),
       ("gxde-compressor", "gxde-file-manager"),
     )
