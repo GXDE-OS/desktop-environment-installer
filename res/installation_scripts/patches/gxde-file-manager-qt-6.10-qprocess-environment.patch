@@ -1,0 +1,20 @@
+diff --git a/gxde-file-manager-lib/controllers/filecontroller.cpp b/gxde-file-manager-lib/controllers/filecontroller.cpp
+index 50ab496..068568c 100644
+--- a/gxde-file-manager-lib/controllers/filecontroller.cpp
++++ b/gxde-file-manager-lib/controllers/filecontroller.cpp
+@@ -414,10 +414,11 @@ QProcessEnvironment compressorEnvironment()
+ 
+ bool startCompressor(const QStringList &args)
+ {
+-    return QProcess::startDetached(QStringLiteral("gxde-compressor"),
+-                                   args,
+-                                   QString(),
+-                                   compressorEnvironment());
++    QProcess compressorProcess;
++    compressorProcess.setProgram(QStringLiteral("gxde-compressor"));
++    compressorProcess.setArguments(args);
++    compressorProcess.setProcessEnvironment(compressorEnvironment());
++    return compressorProcess.startDetached();
+ }
+ 
+ } 

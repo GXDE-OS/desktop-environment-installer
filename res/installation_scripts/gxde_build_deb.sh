@@ -709,6 +709,23 @@ endif()\
                 fi
             done
             ;;
+        gxde-file-manager)
+            local file_manager_controller="$PROJ_ROOT/gxde-file-manager-lib/controllers/filecontroller.cpp"
+
+            # Qt 6.10 no longer provides the static startDetached overload
+            # taking a QProcessEnvironment as its fourth argument.  Use an
+            # instance so the compressor still receives the deliberately
+            # sanitized X11/Wayland environment before it is detached.
+            if grep -Fq \
+                'setProcessEnvironment(compressorEnvironment())' \
+                "$file_manager_controller"; then
+                echo "Source compatibility: GXDE File Manager already uses the supported detached-process environment API."
+            else
+                apply_bundled_source_patch \
+                    "GXDE File Manager Qt 6.10 detached-process environment" \
+                    "$PROJ_ROOT/patches/gxde-file-manager-qt-6.10-qprocess-environment.patch"
+            fi
+            ;;
         gxde-launcher)
             local launcher_cmake="$PROJ_ROOT/CMakeLists.txt"
 

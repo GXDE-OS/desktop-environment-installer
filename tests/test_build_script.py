@@ -1226,6 +1226,80 @@ class BuildScriptTest(unittest.TestCase):
           patched_cmake.index("target_link_libraries"),
         )
 
+  def test_file_manager_preserves_environment_with_qt610_start_detached(
+      self,
+    ) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      (repository / "debian/control").write_text(
+        "Source: gxde-file-manager\n"
+        "Build-Depends: debhelper-compat (= 13), qt6-base-dev\n\n"
+        "Package: gxde-file-manager\n"
+        "Architecture: any\n"
+        "Depends: ${misc:Depends}\n",
+        encoding="utf-8",
+      )
+      controller = (
+        repository
+        / "gxde-file-manager-lib/controllers/filecontroller.cpp"
+      )
+      controller.parent.mkdir(parents=True)
+      controller.write_text(
+        "QProcessEnvironment compressorEnvironment()\n"
+        "{\n"
+        "    return QProcessEnvironment::systemEnvironment();\n"
+        "}\n\n"
+        "bool startCompressor(const QStringList &args)\n"
+        "{\n"
+        "    return QProcess::startDetached(QStringLiteral(\"gxde-compressor\"),\n"
+        "                                   args,\n"
+        "                                   QString(),\n"
+        "                                   compressorEnvironment());\n"
+        "}\n\n"
+        "} \n",
+        encoding="utf-8",
+      )
+      shutil.copytree(BUNDLED_PATCHES, repository / "patches")
+      subprocess.run(
+        ["git", "init", "--quiet"],
+        cwd=repository,
+        check=True,
+      )
+
+      command = [
+        "bash",
+        "-c",
+        'source "$1"; PROJ_ROOT="$2"; '
+        'PKG_NAME="gxde-file-manager"; '
+        "apply_source_compatibility",
+        "build-script-test",
+        str(BUILD_SCRIPT),
+        str(repository),
+      ]
+      for _ in range(2):
+        result = subprocess.run(
+          command,
+          check=False,
+          capture_output=True,
+          text=True,
+        )
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+      patched_controller = controller.read_text(encoding="utf-8")
+      self.assertIn(
+        "compressorProcess.setProcessEnvironment(compressorEnvironment())",
+        patched_controller,
+      )
+      self.assertIn(
+        "return compressorProcess.startDetached()",
+        patched_controller,
+      )
+      self.assertNotIn(
+        "QProcess::startDetached(QStringLiteral(\"gxde-compressor\")",
+        patched_controller,
+      )
+
   def test_launcher_imports_qt_gui_private_target(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)
