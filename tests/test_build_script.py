@@ -1168,6 +1168,64 @@ class BuildScriptTest(unittest.TestCase):
         frame_cmake.read_text().count("Qt6::GuiPrivate"),
       )
 
+  def test_gxde_movie_imports_qt_gui_private_for_both_qt6_targets(
+      self,
+    ) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      (repository / "debian/control").write_text(
+        "Source: gxde-movie-reborn\n"
+        "Build-Depends: debhelper-compat (= 13), qt6-base-private-dev\n\n"
+        "Package: gxde-movie\n"
+        "Architecture: any\n"
+        "Depends: ${misc:Depends}\n",
+        encoding="utf-8",
+      )
+      qt6_cmake_files = (
+        repository / "src/CMakeLists.txt",
+        repository / "src/libgxmr-qt6/CMakeLists.txt",
+      )
+      for cmake_file in qt6_cmake_files:
+        cmake_file.parent.mkdir(parents=True, exist_ok=True)
+        cmake_file.write_text(
+          "find_package(Qt6 REQUIRED COMPONENTS Widgets Gui)\n\n"
+          "pkg_check_modules(DTK2W REQUIRED IMPORTED_TARGET dtk2widget)\n\n"
+          "target_link_libraries(${CMD_NAME}\n"
+          "    Qt6::Gui Qt6::GuiPrivate)\n",
+          encoding="utf-8",
+        )
+
+      command = [
+        "bash",
+        "-c",
+        'source "$1"; PROJ_ROOT="$2"; '
+        'PKG_NAME="gxde-movie-reborn"; '
+        "apply_source_compatibility",
+        "build-script-test",
+        str(BUILD_SCRIPT),
+        str(repository),
+      ]
+      for _ in range(2):
+        result = subprocess.run(
+          command,
+          check=False,
+          capture_output=True,
+          text=True,
+        )
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+      for cmake_file in qt6_cmake_files:
+        patched_cmake = cmake_file.read_text(encoding="utf-8")
+        self.assertEqual(
+          1,
+          patched_cmake.count("find_package(Qt6GuiPrivate REQUIRED)"),
+        )
+        self.assertLess(
+          patched_cmake.index("find_package(Qt6GuiPrivate REQUIRED)"),
+          patched_cmake.index("target_link_libraries"),
+        )
+
   def test_launcher_imports_qt_gui_private_target(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)

@@ -670,6 +670,45 @@ apply_source_compatibility() {
                 exit 1
             fi
             ;;
+        gxde-movie-reborn)
+            local movie_qt6_cmake
+            local movie_qt6_cmake_files=(
+                "$PROJ_ROOT/src/CMakeLists.txt"
+                "$PROJ_ROOT/src/libgxmr-qt6/CMakeLists.txt"
+            )
+
+            # Both the Qt 6 player and libgxmr-qt6 already link GuiPrivate,
+            # but the repository only discovers Qt6::Gui.  On current CMake,
+            # private Qt targets are separate packages and therefore must be
+            # imported explicitly before target_link_libraries is evaluated.
+            for movie_qt6_cmake in "${movie_qt6_cmake_files[@]}"; do
+                if [[ ! -f "$movie_qt6_cmake" ]]; then
+                    echo "Error: GXDE Movie Qt 6 CMake file was not found: $movie_qt6_cmake"
+                    exit 1
+                fi
+                if ! grep -Fq 'find_package(Qt6GuiPrivate REQUIRED)' \
+                    "$movie_qt6_cmake"; then
+                    echo "Source compatibility: importing the Qt GUI private target in $movie_qt6_cmake."
+                    if ! sed -i \
+                        '/^[[:space:]]*pkg_check_modules(DTK2W[[:space:]]/i\
+if(NOT TARGET Qt6::GuiPrivate)\
+    find_package(Qt6GuiPrivate REQUIRED)\
+endif()\
+' \
+                        "$movie_qt6_cmake"; then
+                        echo "Error: failed to import the Qt GUI private target in $movie_qt6_cmake."
+                        exit 1
+                    fi
+                fi
+
+                if ! grep -Fq 'find_package(Qt6GuiPrivate REQUIRED)' \
+                    "$movie_qt6_cmake" \
+                    || ! grep -Fq 'Qt6::GuiPrivate' "$movie_qt6_cmake"; then
+                    echo "Error: GXDE Movie's Qt GUI private target configuration is incomplete in $movie_qt6_cmake."
+                    exit 1
+                fi
+            done
+            ;;
         gxde-launcher)
             local launcher_cmake="$PROJ_ROOT/CMakeLists.txt"
 
