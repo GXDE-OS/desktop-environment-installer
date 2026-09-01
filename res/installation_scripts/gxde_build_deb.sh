@@ -332,6 +332,28 @@ apply_source_compatibility() {
                 echo "Error: failed to remove retired libgnome-keyring CDBS build dependencies."
                 exit 1
             fi
+
+            # gtk-doc 1.26 removed gtkdoc-mktmpl. This release already ships
+            # its generated tmpl/*.sgml files, so keep building and packaging
+            # the reference manual from those templates instead of attempting
+            # to regenerate them with a command that no longer exists.
+            local gtkdoc_makefile
+            for gtkdoc_makefile in \
+                "$PROJ_ROOT/gtk-doc.make" \
+                "$PROJ_ROOT/docs/reference/gnome-keyring/Makefile.in" \
+                "$PROJ_ROOT/docs/reference/gnome-keyring/Makefile"; do
+                if [[ ! -f "$gtkdoc_makefile" ]]; then
+                    continue
+                fi
+                sed -i \
+                    's|gtkdoc-mktmpl --module=$(DOC_MODULE) $(MKTMPL_OPTIONS)|echo "Using the shipped gtk-doc templates"|g' \
+                    "$gtkdoc_makefile"
+            done
+            if grep -Fq 'gtkdoc-mktmpl --module=$(DOC_MODULE)' \
+                "$PROJ_ROOT/docs/reference/gnome-keyring/Makefile.in"; then
+                echo "Error: failed to disable the retired gtkdoc-mktmpl step."
+                exit 1
+            fi
             ;;
         gxde-default-settings)
             local legacy_iwlwifi_config="$PROJ_ROOT/etc.d/modprobe.d/iwlwifi.conf"

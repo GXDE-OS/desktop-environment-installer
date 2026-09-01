@@ -327,6 +327,22 @@ class BuildScriptTest(unittest.TestCase):
         "include /usr/share/cdbs/1/class/gnome.mk\n",
         encoding="utf-8",
       )
+      documentation_directory = (
+        repository / "docs/reference/gnome-keyring"
+      )
+      documentation_directory.mkdir(parents=True)
+      documentation_makefile = documentation_directory / "Makefile.in"
+      documentation_makefile.write_text(
+        "tmpl-build.stamp:\n"
+        "\t$(GTK_DOC_V_TMPL)gtkdoc-mktmpl --module=$(DOC_MODULE) "
+        "$(MKTMPL_OPTIONS)\n",
+        encoding="utf-8",
+      )
+      (repository / "gtk-doc.make").write_text(
+        "\t$(GTK_DOC_V_TMPL)gtkdoc-mktmpl --module=$(DOC_MODULE) "
+        "$(MKTMPL_OPTIONS)\n",
+        encoding="utf-8",
+      )
       compatibility_directory = repository / "compat/libgnome-keyring"
       compatibility_directory.mkdir(parents=True)
       shutil.copy2(
@@ -360,6 +376,14 @@ class BuildScriptTest(unittest.TestCase):
       self.assertNotIn("cdbs (>=", updated_control)
       self.assertNotIn("dh-autoreconf", updated_control)
       self.assertIn("gnome-pkg-tools (>= 0.10)", updated_control)
+      self.assertNotIn(
+        "gtkdoc-mktmpl",
+        documentation_makefile.read_text(encoding="utf-8"),
+      )
+      self.assertIn(
+        "Using the shipped gtk-doc templates",
+        documentation_makefile.read_text(encoding="utf-8"),
+      )
       self.assertTrue(rules.stat().st_mode & 0o100)
 
   def test_deepin_daemon_defers_compositor_until_session_selection(
