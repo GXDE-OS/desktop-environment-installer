@@ -206,6 +206,20 @@ INFRA_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
+    # GXDE File Manager links against the Qt 6 UDisks wrapper.  Ubuntu does
+    # not provide libudisks2-qt6-dev, so build GXDE's library before Core.
+    "repo_name": "udisks2-qt6",
+    "display_name": "UDisks2 Qt6 Library",
+    "branch": "master",
+  },
+  {
+    # Besides the movie player, this source emits libgxmr-qt6 and its
+    # development package, which GXDE File Manager uses for media previews.
+    "repo_name": "gxde-movie-reborn",
+    "display_name": "GXDE Movie and Preview Library",
+    "branch": "master",
+  },
+  {
     # GXDE Top Panel Plugins imports the Qt 6 DBusMenu API.  Ubuntu no longer
     # provides the old LXQt development package, so bootstrap GXDE's native
     # Qt 6 library before entering the Core stage.

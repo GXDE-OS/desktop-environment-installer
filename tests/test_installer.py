@@ -364,6 +364,8 @@ class InstallerTest(unittest.TestCase):
 
     self.assertIn("gxde-k9", infra_repositories)
     self.assertIn("golang-gxde-dev", infra_repositories)
+    self.assertIn("udisks2-qt6", infra_repositories)
+    self.assertIn("gxde-movie-reborn", infra_repositories)
     self.assertTrue({
       "gxde-account-faces",
       "gxde-app-installer",
@@ -505,6 +507,22 @@ class InstallerTest(unittest.TestCase):
       infra_repositories.index("dframework-dbus-qt6"),
       infra_repositories.index("gxde-network-utils-qt6"),
     )
+
+  def test_file_manager_qt6_libraries_are_bootstrapped_before_core(
+      self,
+    ) -> None:
+    build_repositories = [
+      module["repo_name"]
+      for module in installer.INFRA_MODULES + installer.CORE_MODULES
+    ]
+    file_manager_index = build_repositories.index("gxde-file-manager")
+
+    for dependency in ("udisks2-qt6", "gxde-movie-reborn"):
+      with self.subTest(dependency=dependency):
+        self.assertLess(
+          build_repositories.index(dependency),
+          file_manager_index,
+        )
 
   def test_dbusmenu_qt6_is_bootstrapped_before_top_panel_plugins(
       self,
