@@ -12,5 +12,13 @@ override_dh_auto_configure:
 		--enable-gtk-doc \
 		--libdir=/usr/lib/$(DEB_HOST_MULTIARCH)
 
+# The 2014 test suite uses a Python 2-only mock Secret Service whenever it
+# finds a session bus.  Package builds launched from a desktop terminal must
+# not inherit or interact with the user's real session bus.  With no bus the
+# two mock-service tests use their supported skip path, while the remaining
+# tests still run normally.
+override_dh_auto_test:
+	env -u DBUS_SESSION_BUS_ADDRESS dh_auto_test
+
 override_dh_makeshlibs:
 	dh_makeshlibs -plibgnome-keyring0 -V -- -c4
