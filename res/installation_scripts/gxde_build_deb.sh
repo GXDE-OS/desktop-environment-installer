@@ -645,6 +645,47 @@ apply_source_compatibility() {
                 exit 1
             fi
             ;;
+        gxde-control-center)
+            local control_center_frame_cmake="$PROJ_ROOT/src/frame/CMakeLists.txt"
+
+            # The frame accesses QPA types directly.  Merely listing
+            # qt6-base-private-dev in Debian Build-Depends does not propagate
+            # Qt's versioned private include directories to this executable;
+            # importing and linking GuiPrivate does.
+            if ! grep -Fq 'find_package(Qt6GuiPrivate REQUIRED)' \
+                "$control_center_frame_cmake"; then
+                echo "Source compatibility: importing the Qt GUI private target for GXDE Control Center."
+                if ! sed -i \
+                    '/^[[:space:]]*find_package(Qt6 REQUIRED COMPONENTS/a\
+if(NOT TARGET Qt6::GuiPrivate)\
+    find_package(Qt6GuiPrivate REQUIRED)\
+endif()' \
+                    "$control_center_frame_cmake"; then
+                    echo "Error: failed to import the Qt GUI private target for GXDE Control Center."
+                    exit 1
+                fi
+            fi
+
+            if ! grep -Eq '^[[:space:]]*Qt6::GuiPrivate[[:space:]]*$' \
+                "$control_center_frame_cmake"; then
+                echo "Source compatibility: linking GXDE Control Center to the Qt GUI private target."
+                if ! sed -i \
+                    '/^[[:space:]]*Qt6::Widgets[[:space:]]*$/a\
+    Qt6::GuiPrivate' \
+                    "$control_center_frame_cmake"; then
+                    echo "Error: failed to link GXDE Control Center to the Qt GUI private target."
+                    exit 1
+                fi
+            fi
+
+            if ! grep -Fq 'find_package(Qt6GuiPrivate REQUIRED)' \
+                "$control_center_frame_cmake" \
+                || ! grep -Eq '^[[:space:]]*Qt6::GuiPrivate[[:space:]]*$' \
+                    "$control_center_frame_cmake"; then
+                echo "Error: GXDE Control Center's Qt GUI private target configuration is incomplete."
+                exit 1
+            fi
+            ;;
         gxde-dock)
             local system_monitor_cmake="$PROJ_ROOT/plugins/dde-sys-monitor-plugin/CMakeLists.txt"
             local dock_frame_cmake="$PROJ_ROOT/frame/CMakeLists.txt"

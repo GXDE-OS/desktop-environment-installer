@@ -1042,6 +1042,81 @@ class BuildScriptTest(unittest.TestCase):
         resumed_run.stdout,
       )
 
+  def test_control_center_imports_qt_gui_private_target(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      (repository / "debian/control").write_text(
+        "Source: gxde-control-center\n"
+        "Build-Depends: debhelper-compat (= 13), qt6-base-private-dev\n\n"
+        "Package: gxde-control-center\n"
+        "Architecture: any\n"
+        "Depends: ${misc:Depends}\n",
+        encoding="utf-8",
+      )
+      frame_directory = repository / "src/frame"
+      frame_directory.mkdir(parents=True)
+      frame_cmake = frame_directory / "CMakeLists.txt"
+      frame_cmake.write_text(
+        "find_package(PkgConfig REQUIRED)\n"
+        "find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent DBus)\n\n"
+        "add_executable(${BIN_NAME} ${SRCS})\n"
+        "target_link_libraries(${BIN_NAME} PRIVATE\n"
+        "    Qt6::Widgets\n"
+        "    Qt6::Concurrent\n"
+        ")\n",
+        encoding="utf-8",
+      )
+
+      command = [
+        "bash",
+        "-c",
+        'source "$1"; PROJ_ROOT="$2"; '
+        'PKG_NAME="gxde-control-center"; '
+        "apply_source_compatibility",
+        "build-script-test",
+        str(BUILD_SCRIPT),
+        str(repository),
+      ]
+      first_run = subprocess.run(
+        command,
+        check=False,
+        capture_output=True,
+        text=True,
+      )
+      self.assertEqual(
+        0,
+        first_run.returncode,
+        first_run.stdout + first_run.stderr,
+      )
+      self.assertIn(
+        "find_package(Qt6GuiPrivate REQUIRED)",
+        frame_cmake.read_text(),
+      )
+      self.assertIn("Qt6::GuiPrivate", frame_cmake.read_text())
+
+      resumed_run = subprocess.run(
+        command,
+        check=False,
+        capture_output=True,
+        text=True,
+      )
+      self.assertEqual(
+        0,
+        resumed_run.returncode,
+        resumed_run.stdout + resumed_run.stderr,
+      )
+      self.assertEqual(
+        1,
+        frame_cmake.read_text().count(
+          "find_package(Qt6GuiPrivate REQUIRED)"
+        ),
+      )
+      self.assertEqual(
+        2,
+        frame_cmake.read_text().count("Qt6::GuiPrivate"),
+      )
+
   def test_moves_dtk2widget_moc_include_outside_namespace(self) -> None:
     with TemporaryDirectory() as temporary_directory:
       repository = Path(temporary_directory)
