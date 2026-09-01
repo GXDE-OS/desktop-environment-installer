@@ -411,6 +411,17 @@ class InstallerTest(unittest.TestCase):
       "deepin-screensaver",
     }.issubset(core_repositories))
 
+  def test_time_screensaver_precedes_deepin_screensaver(self) -> None:
+    core_repositories = [
+      module["repo_name"]
+      for module in installer.CORE_MODULES
+    ]
+
+    self.assertLess(
+      core_repositories.index("gxde-time-screensaver"),
+      core_repositories.index("deepin-screensaver"),
+    )
+
   def test_shell_tools_runtime_dependencies_precede_meta_package(self) -> None:
     core_repositories = [
       module["repo_name"]

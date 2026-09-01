@@ -455,13 +455,15 @@ CORE_MODULES: list[ModuleDefinition] = [
     "branch": "master",
   },
   {
-    "repo_name": "deepin-screensaver",
-    "display_name": "GXDE Screensaver",
+    # deepin-screensaver-xscreensaver-data has a hard runtime dependency on
+    # this package, so install it before building/installing the main bundle.
+    "repo_name": "gxde-time-screensaver",
+    "display_name": "GXDE Time Screensaver",
     "branch": "master",
   },
   {
-    "repo_name": "gxde-time-screensaver",
-    "display_name": "GXDE Time Screensaver",
+    "repo_name": "deepin-screensaver",
+    "display_name": "GXDE Screensaver",
     "branch": "master",
   },
 ]
