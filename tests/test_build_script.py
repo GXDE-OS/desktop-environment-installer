@@ -1237,7 +1237,16 @@ class BuildScriptTest(unittest.TestCase):
         "Build-Depends: debhelper-compat (= 13), qt6-base-dev\n\n"
         "Package: gxde-file-manager\n"
         "Architecture: any\n"
-        "Depends: ${misc:Depends}\n",
+        "Depends: ${misc:Depends}\n\n"
+        "Package: libgxde-file-manager\n"
+        "Architecture: any\n"
+        "Depends:\n"
+        " ${shlibs:Depends},\n"
+        " ${misc:Depends},\n"
+        " libpoppler-cpp0v5 | libpoppler-cpp1 | libpoppler-cpp2,\n"
+        " gvfs-backends(>=1.27.3),\n"
+        " cryptsetup,\n"
+        " libkf6codecs6,\n",
         encoding="utf-8",
       )
       controller = (
@@ -1299,6 +1308,123 @@ class BuildScriptTest(unittest.TestCase):
         "QProcess::startDetached(QStringLiteral(\"gxde-compressor\")",
         patched_controller,
       )
+      patched_control = (repository / "debian/control").read_text(
+        encoding="utf-8",
+      )
+      self.assertIn(
+        "libpoppler-cpp2 | libpoppler-cpp3",
+        patched_control,
+      )
+
+  def test_file_manager_integration_builds_against_qt6(self) -> None:
+    with TemporaryDirectory() as temporary_directory:
+      repository = Path(temporary_directory)
+      (repository / "debian").mkdir()
+      control = repository / "debian/control"
+      control.write_text(
+        "Source: gxde-file-manager-integration\n"
+        "Section: devel\n"
+        "Priority: optional\n"
+        "Maintainer: gfdgd xi <3025613752@qq.com>\n"
+        "Build-Depends: debhelper (>=9), pkg-config, qt5-qmake, "
+        "qtbase5-dev, qtwebengine5-dev, \n"
+        " \t\tlibgxde-file-manager-dev, libfontconfig1-dev, qtchooser\n"
+        "Standards-Version: 3.9.6\n"
+        "Homepage: http://www.deepin.org\n\n"
+        "Package: gxde-file-manager-integration\n"
+        "Architecture: any\n"
+        "Depends: ${shlibs:Depends}, ${misc:Depends}\n"
+        " libgxde-file-manager\n"
+        "Description: GXDE File manager plugin integration\n"
+        " Include the following plugins:\n",
+        encoding="utf-8",
+      )
+      rules = repository / "debian/rules"
+      rules.write_text(
+        "#!/usr/bin/make -f\n"
+        "include /usr/share/dpkg/default.mk\n\n"
+        "VERSION=$(shell dpkg-parsechangelog -ldebian/changelog "
+        "-SVersion | awk -F'-' '{print $$1}')\n"
+        "DEB_BUILD_ARCH ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH)\n"
+        "export QT_SELECT=5\n"
+        "%:\n"
+        "\tdh $@ --parallel\n\n"
+        "override_dh_shlibdeps:\n"
+        "\t--ignore-missing-info\n\n"
+        "override_dh_auto_configure:\n"
+        "\tdh_auto_configure -- DAPP_VERSION=$(VERSION) "
+        "LIB_INSTALL_DIR=/usr/lib/$(DEB_HOST_MULTIARCH)\n",
+        encoding="utf-8",
+      )
+      webview = repository / "webview/dfmwebview.cpp"
+      webview.parent.mkdir()
+      webview.write_text(
+        "#include <dfmeventdispatcher.h>\n\n"
+        "#include <QWebEngineHistory>\n"
+        "#include <QAction>\n"
+        "#include <QWebEngineContextMenuData>\n"
+        "#include <QWebEngineSettings>\n"
+        "#include <QMenu>\n\n"
+        "DFMWebView::DFMWebView(QWidget *parent)\n"
+        "    : QWebEngineView(parent)\n"
+        "{\n"
+        "    DFMWebViewPrivate::lastCreateWebView = this;\n\n"
+        "    QWebEngineSettings::defaultSettings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);\n\n"
+        "    connect(this, &QWebEngineView::urlChanged, this, &DFMWebView::notifyUrlChanged);\n\n"
+        "void DFMWebView::contextMenuEvent(QContextMenuEvent *event)\n"
+        "{\n"
+        "    const QWebEngineContextMenuData &data = page()->contextMenuData();\n"
+        "    const DUrl url = data.linkUrl();\n\n"
+        "    if (url.isEmpty()) {\n"
+        "        return QWebEngineView::contextMenuEvent(event);\n",
+        encoding="utf-8",
+      )
+      nutstore = (
+        repository
+        / "nutstore-dfm-plugin/dfmgenericpluginobject.cpp"
+      )
+      nutstore.parent.mkdir()
+      nutstore.write_text(
+        "DFMGenericPluginObject::DFMGenericPluginObject(QObject *parent)\n"
+        "    : QObject(parent)\n"
+        "{\n\n"
+        "    connect(client, &QTcpSocket::connected, this, &DFMGenericPluginObject::updateNSRootPathList);\n"
+        "    connect(client, &QTcpSocket::readyRead, this, &DFMGenericPluginObject::onClientReadReady);\n"
+        "    connect(client, static_cast<void(QTcpSocket::*)(QAbstractSocket::SocketError)>(&QTcpSocket::error), this, [this] {\n"
+        "        qWarning() << \"The localhost:19080 tcp socket error:\" << client->errorString();\n\n"
+        "        // reset\n",
+        encoding="utf-8",
+      )
+      shutil.copytree(BUNDLED_PATCHES, repository / "patches")
+      subprocess.run(["git", "init", "--quiet"], cwd=repository, check=True)
+
+      command = [
+        "bash",
+        "-c",
+        'source "$1"; PROJ_ROOT="$2"; '
+        'PKG_NAME="gxde-file-manager-integration"; '
+        "apply_source_compatibility",
+        "build-script-test",
+        str(BUILD_SCRIPT),
+        str(repository),
+      ]
+      for _ in range(2):
+        result = subprocess.run(
+          command,
+          check=False,
+          capture_output=True,
+          text=True,
+        )
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+
+      patched_control = control.read_text(encoding="utf-8")
+      self.assertIn("qmake6", patched_control)
+      self.assertIn("qt6-webengine-dev", patched_control)
+      self.assertNotIn("qt5-qmake", patched_control)
+      self.assertIn("${misc:Depends},\n libgxde-file-manager", patched_control)
+      self.assertIn("--buildsystem=qmake6", rules.read_text(encoding="utf-8"))
+      self.assertIn("lastContextMenuRequest()", webview.read_text(encoding="utf-8"))
+      self.assertIn("QTcpSocket::errorOccurred", nutstore.read_text(encoding="utf-8"))
 
   def test_wlcom_ignores_libinput_switch_kinds_unknown_to_wlroots(
       self,

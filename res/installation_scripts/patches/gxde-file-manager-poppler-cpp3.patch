@@ -1,0 +1,13 @@
+diff --git a/debian/control b/debian/control
+index f3ec559..f335be8 100644
+--- a/debian/control
++++ b/debian/control
+@@ -115,7 +115,7 @@ Architecture: any
+ Depends:
+  ${shlibs:Depends},
+  ${misc:Depends},
+- libpoppler-cpp0v5 | libpoppler-cpp1 | libpoppler-cpp2,
++ libpoppler-cpp0v5 | libpoppler-cpp1 | libpoppler-cpp2 | libpoppler-cpp3,
+  gvfs-backends(>=1.27.3),
+  cryptsetup,
+  libkf6codecs6,

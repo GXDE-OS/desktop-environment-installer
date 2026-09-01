@@ -725,6 +725,37 @@ endif()\
                     "GXDE File Manager Qt 6.10 detached-process environment" \
                     "$PROJ_ROOT/patches/gxde-file-manager-qt-6.10-qprocess-environment.patch"
             fi
+
+            # Poppler 26 raised the C++ interface SONAME again.  Keep all
+            # historical alternatives while allowing Ubuntu 26.04's runtime.
+            if grep -Fq 'libpoppler-cpp3' "$PROJ_ROOT/debian/control"; then
+                echo "Source compatibility: GXDE File Manager already supports the Poppler 26 C++ runtime."
+            else
+                apply_bundled_source_patch \
+                    "GXDE File Manager Poppler 26 runtime" \
+                    "$PROJ_ROOT/patches/gxde-file-manager-poppler-cpp3.patch"
+            fi
+            ;;
+        gxde-file-manager-integration)
+            local integration_control="$PROJ_ROOT/debian/control"
+            local integration_rules="$PROJ_ROOT/debian/rules"
+            local integration_webview="$PROJ_ROOT/webview/dfmwebview.cpp"
+            local integration_nutstore="$PROJ_ROOT/nutstore-dfm-plugin/dfmgenericpluginobject.cpp"
+
+            # The integration repository still declares a Qt 5 toolchain,
+            # although its plugin ABI is supplied by GXDE's Qt 6 file
+            # manager.  Port both the Debian build and the removed Qt APIs so
+            # the plugins are compiled against the same Qt major version.
+            if grep -Fq 'qmake6' "$integration_control" \
+                && grep -Fq -- '--buildsystem=qmake6' "$integration_rules" \
+                && grep -Fq 'lastContextMenuRequest()' "$integration_webview" \
+                && grep -Fq 'QTcpSocket::errorOccurred' "$integration_nutstore"; then
+                echo "Source compatibility: GXDE File Manager Integration already targets Qt 6."
+            else
+                apply_bundled_source_patch \
+                    "GXDE File Manager Integration Qt 6" \
+                    "$PROJ_ROOT/patches/gxde-file-manager-integration-qt6.patch"
+            fi
             ;;
         gxde-wlcom)
             local wlroots_libinput_switch="$PROJ_ROOT/subprojects/wlroots/backend/libinput/switch.c"

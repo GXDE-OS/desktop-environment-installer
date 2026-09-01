@@ -1,0 +1,93 @@
+diff --git a/debian/control b/debian/control
+index 5345cf2..3913092 100644
+--- a/debian/control
++++ b/debian/control
+@@ -2,8 +2,8 @@ Source: gxde-file-manager-integration
+ Section: devel
+ Priority: optional
+ Maintainer: gfdgd xi <3025613752@qq.com>
+-Build-Depends: debhelper (>=9), pkg-config, qt5-qmake, qtbase5-dev, qtwebengine5-dev, 
+- 		libgxde-file-manager-dev, libfontconfig1-dev, qtchooser
++Build-Depends: debhelper (>=9), pkg-config, qmake6, qt6-base-dev, qt6-webengine-dev,
++ libgxde-file-manager-dev, libfontconfig1-dev
+ Standards-Version: 3.9.6
+ Homepage: http://www.deepin.org
+ 
+@@ -12,6 +12,6 @@ Homepage: http://www.deepin.org
+ Package: gxde-file-manager-integration
+ Architecture: any
+-Depends: ${shlibs:Depends}, ${misc:Depends}
++Depends: ${shlibs:Depends}, ${misc:Depends},
+  libgxde-file-manager
+ Description: GXDE File manager plugin integration
+  Include the following plugins:
+diff --git a/debian/rules b/debian/rules
+index bd016cb..86cc6ef 100755
+--- a/debian/rules
++++ b/debian/rules
+@@ -3,12 +3,11 @@ include /usr/share/dpkg/default.mk
+ 
+ VERSION=$(shell dpkg-parsechangelog -ldebian/changelog -SVersion | awk -F'-' '{print $$1}')
+ DEB_BUILD_ARCH ?= $(shell dpkg-architecture -qDEB_BUILD_ARCH)
+-export QT_SELECT=5
+ %:
+-	dh $@ --parallel
++	dh $@ --parallel --buildsystem=qmake6
+ 
+ override_dh_shlibdeps:
+-	--ignore-missing-info
++	dh_shlibdeps
+ 
+ override_dh_auto_configure:
+-	dh_auto_configure -- DAPP_VERSION=$(VERSION) LIB_INSTALL_DIR=/usr/lib/$(DEB_HOST_MULTIARCH)
++	dh_auto_configure --buildsystem=qmake6 -- DAPP_VERSION=$(VERSION) LIB_INSTALL_DIR=/usr/lib/$(DEB_HOST_MULTIARCH)
+diff --git a/webview/dfmwebview.cpp b/webview/dfmwebview.cpp
+index 7c4050f..d8cc83a 100644
+--- a/webview/dfmwebview.cpp
++++ b/webview/dfmwebview.cpp
+@@ -13,7 +13,7 @@
+ 
+ #include <QWebEngineHistory>
+ #include <QAction>
+-#include <QWebEngineContextMenuData>
++#include <QWebEngineContextMenuRequest>
+ #include <QWebEngineSettings>
+ #include <QMenu>
+ 
+@@ -101,8 +101,8 @@ QWebEngineView *DFMWebView::createWindow(QWebEnginePage::WebWindowType type)
+ 
+ void DFMWebView::contextMenuEvent(QContextMenuEvent *event)
+ {
+-    const QWebEngineContextMenuData &data = page()->contextMenuData();
+-    const DUrl url = data.linkUrl();
++    const QWebEngineContextMenuRequest *request = lastContextMenuRequest();
++    const DUrl url = request ? request->linkUrl() : DUrl();
+ 
+     if (url.isEmpty()) {
+         return QWebEngineView::contextMenuEvent(event);
+diff --git a/webview/dfmwebview.cpp b/webview/dfmwebview.cpp
+index 7c4050f..d8cc83a 100644
+--- a/webview/dfmwebview.cpp
++++ b/webview/dfmwebview.cpp
+@@ -30,7 +30,7 @@ DFMWebView::DFMWebView(QWidget *parent)
+ {
+     DFMWebViewPrivate::lastCreateWebView = this;
+ 
+-    QWebEngineSettings::defaultSettings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
++    settings()->setAttribute(QWebEngineSettings::PluginsEnabled, true);
+ 
+     connect(this, &QWebEngineView::urlChanged, this, &DFMWebView::notifyUrlChanged);
+ 
+diff --git a/nutstore-dfm-plugin/dfmgenericpluginobject.cpp b/nutstore-dfm-plugin/dfmgenericpluginobject.cpp
+index 95c65f8..a984bb0 100644
+--- a/nutstore-dfm-plugin/dfmgenericpluginobject.cpp
++++ b/nutstore-dfm-plugin/dfmgenericpluginobject.cpp
+@@ -125,7 +125,7 @@ DFMGenericPluginObject::DFMGenericPluginObject(QObject *parent)
+ 
+     connect(client, &QTcpSocket::connected, this, &DFMGenericPluginObject::updateNSRootPathList);
+     connect(client, &QTcpSocket::readyRead, this, &DFMGenericPluginObject::onClientReadReady);
+-    connect(client, static_cast<void(QTcpSocket::*)(QAbstractSocket::SocketError)>(&QTcpSocket::error), this, [this] {
++    connect(client, &QTcpSocket::errorOccurred, this, [this] {
+         qWarning() << "The localhost:19080 tcp socket error:" << client->errorString();
+ 
+         // reset

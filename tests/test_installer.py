@@ -399,6 +399,7 @@ class InstallerTest(unittest.TestCase):
       "gxde-app-upgrader",
       "gxde-app-uninstaller",
       "gxde-icon-theme",
+      "gxde-file-manager-integration",
       "gxde-globalmenu-service",
       "gxde-requ",
       "gxde-shell-compressor",
@@ -457,6 +458,7 @@ class InstallerTest(unittest.TestCase):
       ("zipu", "gxde-shell-compressor"),
       ("gxde-shell-compressor", "gxde-compressor"),
       ("gxde-compressor", "gxde-file-manager"),
+      ("gxde-file-manager", "gxde-file-manager-integration"),
     )
 
     for dependency, consumer in dependency_pairs:

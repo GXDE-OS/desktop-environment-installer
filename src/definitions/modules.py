@@ -443,6 +443,13 @@ CORE_MODULES: list[ModuleDefinition] = [
     "branch": "char/qt6_migration",
   },
   {
+    # This repository builds the optional file-manager plugins separately and
+    # consumes the development package produced by gxde-file-manager above.
+    "repo_name": "gxde-file-manager-integration",
+    "display_name": "GXDE File Manager Integration Plugins",
+    "branch": "master",
+  },
+  {
     "repo_name": "gxde-requ",
     "display_name": "GXDE Hot Corners",
     "branch": "master",
